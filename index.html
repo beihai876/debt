@@ -49,15 +49,17 @@
   .auth-msg.ok { display: block; background: rgba(90,107,63,0.12); color: var(--moss-deep); border: 1px solid var(--moss); }
   .auth-hint { font-size: 11px; color: var(--muted); text-align: center; margin-top: 16px; line-height: 1.6; }
 
-  .user-bar { display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--muted); }
-  .user-email { font-weight: 600; color: var(--ink); }
+  .account-menu { position: relative; margin-top: 3px; }
+  .account-trigger { display: flex; align-items: center; gap: 7px; font-family: inherit; font-size: 12px; font-weight: 600; padding: 7px 11px; border: 1px solid var(--line); border-radius: 2px; background: var(--card); color: var(--ink); cursor: pointer; }
+  .account-trigger:hover { border-color: var(--rust); color: var(--rust-deep); }
+  .account-caret { font-size: 10px; color: var(--muted); transition: transform 0.15s; }
+  .account-menu.open .account-caret { transform: rotate(180deg); }
+  .account-popover { display: none; position: absolute; right: 0; top: calc(100% + 8px); z-index: 20; width: min(280px, calc(100vw - 32px)); padding: 14px; border: 1px solid var(--line); border-radius: 2px; background: var(--card); box-shadow: 0 8px 28px rgba(40, 30, 20, 0.16); }
+  .account-menu.open .account-popover { display: block; }
+  .account-label { font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--rust); font-weight: 700; margin-bottom: 7px; }
+  .account-email { font-size: 13px; font-weight: 600; color: var(--ink); word-break: break-all; margin-bottom: 12px; }
   .logout-btn { font-size: 12px; font-weight: 600; padding: 6px 12px; border: 1px solid var(--line); border-radius: 2px; background: transparent; color: var(--muted); cursor: pointer; font-family: inherit; }
   .logout-btn:hover { background: #eee2d8; color: var(--rust-deep); border-color: var(--rust); }
-  .account-row { display: flex; justify-content: flex-end; padding: 14px 0 0; margin-bottom: 6px; }
-  .account-card { border: 1px solid var(--line); border-radius: 2px; background: var(--card); padding: 10px 14px; min-width: 240px; }
-  .account-card-label { font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--rust); font-weight: 700; margin-bottom: 6px; }
-  .account-card-body { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-  .account-email { font-size: 13px; font-weight: 600; color: var(--ink); word-break: break-all; }
 
   .summary { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 18px; padding: 28px 0 30px; border-bottom: 1px solid var(--line); margin-bottom: 24px; }
   .total-block { width: 100%; }
@@ -156,6 +158,18 @@
   .btn-borrow:hover { background: var(--rust); color: #fff; }
   .btn-del { border-color: var(--line); color: var(--muted); background: transparent; padding: 8px 10px; }
   .btn-del:hover { background: #eee2d8; color: var(--rust-deep); border-color: var(--rust); }
+  .btn-edit { border-color: var(--line); color: var(--ink); }
+  .btn-edit:hover { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .edit-panel { margin-top: 12px; padding: 13px; border: 1px solid var(--line); background: #fff; }
+  .edit-grid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(120px, 1fr); gap: 10px; }
+  .edit-field label { display: block; font-size: 9px; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 5px; font-weight: 600; }
+  .edit-field input { width: 100%; font-family: inherit; font-size: 14px; padding: 9px 10px; border: 1px solid var(--line); border-radius: 2px; background: var(--card); color: var(--ink); }
+  .edit-field input:focus { outline: none; border-color: var(--rust); box-shadow: 0 0 0 3px rgba(179,80,47,0.1); }
+  .edit-note { font-size: 10px; color: var(--muted); margin-top: 7px; line-height: 1.5; }
+  .edit-error { min-height: 18px; font-size: 11px; color: var(--rust-deep); margin-top: 6px; }
+  .edit-actions { display: flex; justify-content: flex-end; gap: 7px; }
+  .btn-save { border-color: var(--moss); background: var(--moss); color: #fff; }
+  .btn-save:hover { background: var(--moss-deep); }
   .card-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; }
   .history-toggle { font-size: 11px; color: var(--muted); cursor: pointer; user-select: none; display: inline-flex; align-items: center; gap: 5px; }
   .history-toggle:hover { color: var(--ink); }
@@ -183,7 +197,9 @@
     .budget-result { text-align: left; padding-left: 0; }
     .toolbar { gap: 8px; }
     .seg button { padding: 8px 10px; }
+    .edit-grid { grid-template-columns: 1fr; }
   }
+  @media (min-width: 961px) { .masthead { margin-left: -48px; margin-right: -48px; } }
 </style>
 </head>
 <body>
@@ -196,6 +212,14 @@
     <div class="mast-right">
       <div class="today-date" id="todayDate"></div>
       <div class="sync-status"><span class="dot" id="syncDot"></span><span id="syncText">未登录</span></div>
+      <div class="account-menu hidden" id="accountMenu">
+        <button class="account-trigger" id="accountBtn" type="button" aria-expanded="false">个人账号 <span class="account-caret">▾</span></button>
+        <div class="account-popover" id="accountPopover">
+          <div class="account-label">当前账号</div>
+          <div class="account-email" id="userEmail"></div>
+          <button class="logout-btn" id="logoutBtn" type="button">退出登录</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -212,11 +236,11 @@
       </div>
       <div class="auth-field">
         <label>邮箱</label>
-        <input id="authEmail" type="email" placeholder="you@example.com" autocomplete="username">
+        <input id="authEmail" type="email" placeholder="you@example.com" autocomplete="username" required>
       </div>
       <div class="auth-field">
         <label>密码</label>
-        <input id="authPass" type="password" placeholder="至少 6 位" autocomplete="current-password">
+        <input id="authPass" type="password" placeholder="至少 6 位" autocomplete="current-password" minlength="6" required>
       </div>
       <button class="auth-btn" id="authBtn">登录</button>
       <div class="auth-msg" id="authMsg"></div>
@@ -226,16 +250,6 @@
 
   <!-- 主界面 -->
   <div id="appScreen" class="hidden">
-    <div class="account-row">
-      <div class="account-card">
-        <div class="account-card-label">个人账号</div>
-        <div class="account-card-body">
-          <span class="account-email" id="userEmail"></span>
-          <button class="logout-btn" id="logoutBtn">退出登录</button>
-        </div>
-      </div>
-    </div>
-
     <div class="summary">
       <div class="total-block">
         <div class="total-label">当前未还总额</div>
@@ -253,15 +267,15 @@
       <div class="budget-grid">
         <div class="budget-field">
           <label>月工资收入</label>
-          <input id="incomeInput" type="number" placeholder="0" inputmode="decimal">
+          <input id="incomeInput" type="number" placeholder="0" inputmode="decimal" min="0" step="0.01">
         </div>
         <div class="budget-field">
           <label>月生活费</label>
-          <input id="expenseInput" type="number" placeholder="0" inputmode="decimal">
+          <input id="expenseInput" type="number" placeholder="0" inputmode="decimal" min="0" step="0.01">
         </div>
         <div class="budget-field">
           <label>日生活费</label>
-          <input id="dailyInput" type="number" placeholder="0" inputmode="decimal">
+          <input id="dailyInput" type="number" placeholder="0" inputmode="decimal" min="0" step="0.01">
         </div>
         <div class="budget-result">
           <div class="br-label">每月可用于还债</div>
@@ -280,7 +294,7 @@
       <div class="addbar-title">新增一笔债务</div>
       <div class="addrow">
         <div class="field"><label>平台 / 对象</label><input id="newName" placeholder="如：花呗、张三、信用卡"></div>
-        <div class="field" style="flex: 0 1 180px;"><label>欠款金额</label><input id="newAmount" type="number" placeholder="0.00"></div>
+        <div class="field" style="flex: 0 1 180px;"><label>欠款金额</label><input id="newAmount" type="number" placeholder="0.00" min="0" step="0.01" inputmode="decimal"></div>
         <div class="btn-add-field"><button class="btn btn-primary" id="addBtn">记一笔</button></div>
       </div>
     </div>
@@ -328,8 +342,9 @@
   var debts = [];
   var settings = { income: 0, expense: 0, monthKey: "", monthPaid: 0 };
   var authMode = "login";
-  var ui = { filter: "all", sort: "recent", search: "" };
+  var ui = { filter: "all", sort: "recent", search: "", editingId: null };
   var saveTimer = null;
+  var refreshPromise = null;
 
   var el = function (id) { return document.getElementById(id); };
   function setSync(state, text) { el('syncDot').className = 'dot' + (state ? ' ' + state : ''); el('syncText').textContent = text; }
@@ -350,6 +365,67 @@
   function clearSession() { session = null; try { localStorage.removeItem('debt_session'); } catch (e) {} }
   function showAuthMsg(text, type) { var m = el('authMsg'); m.textContent = text; m.className = 'auth-msg ' + type; }
 
+  function setAccountMenu(open) {
+    var menu = el('accountMenu');
+    menu.classList.toggle('open', !!open);
+    el('accountBtn').setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+
+  function readResponseJson(r) {
+    return r.json().catch(function () { return {}; });
+  }
+
+  function applyAuthSession(d) {
+    if (!d || !d.access_token || !d.user) return false;
+    session = {
+      access_token: d.access_token,
+      refresh_token: d.refresh_token || (session && session.refresh_token) || '',
+      expires_at: d.expires_at || Math.floor(Date.now() / 1000) + (d.expires_in || 3600),
+      user: { id: d.user.id, email: d.user.email }
+    };
+    saveSession();
+    return true;
+  }
+
+  function tokenExpiresSoon() {
+    if (!session || !session.access_token) return true;
+    var expiresAt = Number(session.expires_at) || 0;
+    if (!expiresAt) {
+      try {
+        var payload = session.access_token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+        expiresAt = JSON.parse(atob(payload)).exp || 0;
+      } catch (e) { return true; }
+    }
+    return expiresAt <= Math.floor(Date.now() / 1000) + 60;
+  }
+
+  function refreshSession() {
+    if (!session || !session.refresh_token) return Promise.resolve(false);
+    if (refreshPromise) return refreshPromise;
+    refreshPromise = fetch(SUPABASE_URL + '/auth/v1/token?grant_type=refresh_token', {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh_token: session.refresh_token })
+    })
+    .then(function (r) {
+      return readResponseJson(r).then(function (d) { return r.ok && applyAuthSession(d); });
+    })
+    .catch(function () { return false; })
+    .then(function (ok) { refreshPromise = null; return ok; });
+    return refreshPromise;
+  }
+
+  function restoreSession() {
+    loadSession();
+    if (!session || !session.access_token) { setSync('', '未登录'); return; }
+    if (!tokenExpiresSoon()) { enterApp(); return; }
+    setSync('sync', '恢复登录中…');
+    refreshSession().then(function (ok) {
+      if (ok) enterApp();
+      else { clearSession(); setSync('', '登录已过期'); showAuthMsg('登录已过期，请重新登录', 'err'); }
+    });
+  }
+
   function doAuth() {
     var email = el('authEmail').value.trim();
     var pass = el('authPass').value;
@@ -363,7 +439,7 @@
       headers: { 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: email, password: pass })
     })
-    .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, status: r.status, data: d }; }); })
+    .then(function (r) { return readResponseJson(r).then(function (d) { return { ok: r.ok, status: r.status, data: d }; }); })
     .then(function (res) {
       el('authBtn').disabled = false;
       el('authBtn').textContent = authMode === 'login' ? '登录' : '注册';
@@ -377,13 +453,11 @@
         return;
       }
       if (authMode === 'signup' && !d.access_token) {
-        showAuthMsg('注册成功！请切到「登录」登入。', 'ok');
         switchMode('login');
+        showAuthMsg('注册成功！现在可以登录。', 'ok');
         return;
       }
-      if (d.access_token && d.user) {
-        session = { access_token: d.access_token, refresh_token: d.refresh_token, user: { id: d.user.id, email: d.user.email } };
-        saveSession();
+      if (applyAuthSession(d)) {
         enterApp();
       } else { showAuthMsg('登录异常，请重试', 'err'); }
     })
@@ -402,21 +476,26 @@
     el('authMsg').className = 'auth-msg';
   }
 
-  function logout() { clearSession(); debts = []; settings = { income: 0, expense: 0, monthKey: "", monthPaid: 0 }; el('appScreen').classList.add('hidden'); el('authScreen').classList.remove('hidden'); setSync('', '未登录'); el('authEmail').value = ''; el('authPass').value = ''; }
+  function logout() { clearSession(); debts = []; settings = { income: 0, expense: 0, monthKey: "", monthPaid: 0 }; ui.editingId = null; setAccountMenu(false); el('accountMenu').classList.add('hidden'); el('appScreen').classList.add('hidden'); el('authScreen').classList.remove('hidden'); setSync('', '未登录'); el('authEmail').value = ''; el('authPass').value = ''; }
 
   function enterApp() {
     el('authScreen').classList.add('hidden');
     el('appScreen').classList.remove('hidden');
     el('userEmail').textContent = session.user.email;
+    el('accountMenu').classList.remove('hidden');
+    setAccountMenu(false);
     setSync('ok', '已登录');
     cloudLoad();
   }
 
   // ---------- 数据读写 ----------
-  function api(path, opts) {
+  function api(path, opts, retried) {
     opts = opts || {};
-    opts.headers = Object.assign(authHeaders(), opts.headers || {});
-    return fetch(SUPABASE_URL + '/rest/v1/' + path, opts);
+    var requestOpts = Object.assign({}, opts, { headers: Object.assign(authHeaders(), opts.headers || {}) });
+    return fetch(SUPABASE_URL + '/rest/v1/' + path, requestOpts).then(function (r) {
+      if (r.status !== 401 || retried || !session || !session.refresh_token) return r;
+      return refreshSession().then(function (ok) { return ok ? api(path, opts, true) : r; });
+    });
   }
 
   function cloudLoad() {
@@ -494,7 +573,29 @@
     d.log.unshift({ t: 'borrow', amt: amt, date: today(), id: uid() });
     render(); cloudUpsert(d);
   }
-  function removeDebt(id) { debts = debts.filter(function (d) { return d.id !== id; }); render(); cloudDelete(id); }
+  function startEdit(id) {
+    if (!find(id)) return;
+    ui.editingId = id;
+    render();
+    var input = el('editName_' + id); if (input) { input.focus(); input.select(); }
+  }
+  function cancelEdit() { ui.editingId = null; render(); }
+  function saveEdit(id) {
+    var d = find(id); if (!d) return;
+    var name = el('editName_' + id).value.trim();
+    var principal = parseFloat(el('editPrincipal_' + id).value);
+    var repaid = d.log.reduce(function (sum, item) { return sum + (item.t === 'repay' ? Number(item.amt) || 0 : 0); }, 0);
+    var error = el('editError_' + id);
+    if (!name) { error.textContent = '请输入平台或对象名称'; return; }
+    if (isNaN(principal) || principal <= 0) { error.textContent = '欠款总额必须大于 0'; return; }
+    if (principal < repaid) { error.textContent = '欠款总额不能低于累计已还 ¥' + fmt(repaid); return; }
+    d.name = name;
+    d.principal = round2(principal);
+    d.balance = round2(Math.max(0, d.principal - repaid));
+    ui.editingId = null;
+    render(); cloudUpsert(d);
+  }
+  function removeDebt(id) { debts = debts.filter(function (d) { return d.id !== id; }); if (ui.editingId === id) ui.editingId = null; render(); cloudDelete(id); }
   function toggleHist(id) { var d = find(id); if (d) { d.open = !d.open; render(); cloudUpsert(d); } }
   function find(id) { for (var i = 0; i < debts.length; i++) if (debts[i].id === id) return debts[i]; return null; }
 
@@ -540,12 +641,15 @@
     netEl.innerHTML = '<span class="sym">¥</span>' + fmt(net);
     netEl.className = 'br-num' + (net < 0 ? ' neg' : '');
     // 本月剩余可支配 = (工资 - 生活费) - 本月已还
-    var disp = net - settings.monthPaid;
+    // 没有工资基数时不从 0 继续扣本月还款，避免清空工资后显示负数。
+    var disp = settings.income > 0 ? net - settings.monthPaid : 0;
     var dispEl = el('budgetDisp');
     dispEl.innerHTML = '<span class="sym">¥</span>' + fmt(disp);
     dispEl.className = 'br-disp' + (disp < 0 ? ' neg' : '');
     var d = new Date();
-    el('budgetDispSub').textContent = (d.getMonth() + 1) + ' 月已还 ¥' + fmt(settings.monthPaid) + '，下月 1 号自动重置';
+    el('budgetDispSub').textContent = settings.income > 0
+      ? (d.getMonth() + 1) + ' 月已还 ¥' + fmt(settings.monthPaid) + '，下月 1 号自动重置'
+      : '填写月工资后，将自动扣除本月已还 ¥' + fmt(settings.monthPaid);
     var totalOwed = 0;
     debts.forEach(function (d) { totalOwed += d.balance; });
     var payoff = el('budgetPayoff');
@@ -612,10 +716,21 @@
       html += '<div class="progress"><div class="progress-track"><div class="progress-fill" style="width:' + pct + '%"></div></div>';
       html += '<div class="progress-meta"><span>本金 ¥' + fmt(d.principal) + '</span><span class="repaid">已还 ¥' + fmt(repaidTotal) + ' · ' + pct.toFixed(0) + '%</span></div></div>';
       html += '<div class="card-actions">';
-      html += '<input class="mini-input" type="number" id="inp_' + d.id + '" placeholder="金额">';
+      html += '<input class="mini-input" type="number" id="inp_' + d.id + '" placeholder="金额" min="0" step="0.01" inputmode="decimal">';
       html += '<button class="btn-mini btn-repay" data-act="repay" data-id="' + d.id + '">− 还款</button>';
       html += '<button class="btn-mini btn-borrow" data-act="borrow" data-id="' + d.id + '">+ 加借</button>';
+      html += '<button class="btn-mini btn-edit" data-act="edit" data-id="' + d.id + '">修改</button>';
       html += '<button class="btn-mini btn-del" data-act="del" data-id="' + d.id + '">删除</button></div>';
+      if (ui.editingId === d.id) {
+        var repaidForEdit = d.log.reduce(function (sum, item) { return sum + (item.t === 'repay' ? Number(item.amt) || 0 : 0); }, 0);
+        html += '<div class="edit-panel"><div class="edit-grid">';
+        html += '<div class="edit-field"><label>平台 / 对象</label><input id="editName_' + d.id + '" data-edit-id="' + d.id + '" value="' + esc(d.name) + '"></div>';
+        html += '<div class="edit-field"><label>欠款总额</label><input id="editPrincipal_' + d.id + '" data-edit-id="' + d.id + '" type="number" min="' + repaidForEdit + '" step="0.01" inputmode="decimal" value="' + d.principal + '"></div>';
+        html += '</div><div class="edit-note">累计已还 ¥' + fmt(repaidForEdit) + ' 会保留，修改总额后自动重算未还余额。</div>';
+        html += '<div class="edit-error" id="editError_' + d.id + '"></div><div class="edit-actions">';
+        html += '<button class="btn-mini" data-act="cancel-edit" data-id="' + d.id + '">取消</button>';
+        html += '<button class="btn-mini btn-save" data-act="save-edit" data-id="' + d.id + '">保存修改</button></div></div>';
+      }
       html += '<div class="card-foot">';
       if (d.log.length > 0) {
         html += '<div class="history-toggle" data-act="toggle" data-id="' + d.id + '">' + (d.open ? '▾ 收起记录' : '▸ 查看记录') + ' (' + d.log.length + ')</div>';
@@ -638,6 +753,9 @@
   // ---------- 事件 ----------
   el('tabLogin').addEventListener('click', function () { switchMode('login'); });
   el('tabSignup').addEventListener('click', function () { switchMode('signup'); });
+  el('accountBtn').addEventListener('click', function (e) { e.stopPropagation(); setAccountMenu(!el('accountMenu').classList.contains('open')); });
+  el('accountMenu').addEventListener('click', function (e) { e.stopPropagation(); });
+  document.addEventListener('click', function () { setAccountMenu(false); });
   el('authBtn').addEventListener('click', doAuth);
   el('authPass').addEventListener('keydown', function (e) { if (e.key === 'Enter') doAuth(); });
   el('authEmail').addEventListener('keydown', function (e) { if (e.key === 'Enter') el('authPass').focus(); });
@@ -661,7 +779,13 @@
     var btn = e.target.closest('[data-act]'); if (!btn) return;
     var id = btn.getAttribute('data-id'), act = btn.getAttribute('data-act');
     if (act === 'repay') repay(id); else if (act === 'borrow') borrowMore(id);
-    else if (act === 'del') removeDebt(id); else if (act === 'toggle') toggleHist(id);
+    else if (act === 'edit') startEdit(id); else if (act === 'save-edit') saveEdit(id);
+    else if (act === 'cancel-edit') cancelEdit(); else if (act === 'del') removeDebt(id);
+    else if (act === 'toggle') toggleHist(id);
+  });
+  el('list').addEventListener('keydown', function (e) {
+    var input = e.target.closest('[data-edit-id]');
+    if (input && e.key === 'Enter') saveEdit(input.getAttribute('data-edit-id'));
   });
 
   // ---------- 今天日期 ----------
@@ -675,9 +799,7 @@
 
   // ---------- 启动 ----------
   if (!configured) { el('configBanner').classList.remove('hidden'); setSync('err', '未配置'); }
-  loadSession();
-  if (session && session.access_token) enterApp();
-  else { setSync('', '未登录'); }
+  restoreSession();
 </script>
 </body>
 </html>
