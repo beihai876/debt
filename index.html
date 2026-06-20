@@ -16,7 +16,7 @@
     font-family: 'Helvetica Neue', 'PingFang SC', 'Microsoft YaHei', sans-serif;
     color: var(--ink); background: var(--paper); -webkit-font-smoothing: antialiased; min-height: 100vh;
   }
-  .wrap { max-width: 760px; margin: 0 auto; padding: 40px 24px 80px; }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
   .masthead { border-bottom: 2.5px solid var(--ink); padding-bottom: 18px; display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
   .mast-left { flex: 1; min-width: 200px; }
   .eyebrow { font-size: 11px; letter-spacing: 0.32em; text-transform: uppercase; color: var(--rust); font-weight: 700; margin-bottom: 10px; }
@@ -52,10 +52,10 @@
   .logout-btn { font-size: 12px; font-weight: 600; padding: 6px 12px; border: 1px solid var(--line); border-radius: 2px; background: transparent; color: var(--muted); cursor: pointer; font-family: inherit; }
   .logout-btn:hover { background: #eee2d8; color: var(--rust-deep); border-color: var(--rust); }
 
-  .summary { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; padding: 22px 0 26px; border-bottom: 1px solid var(--line); margin-bottom: 30px; flex-wrap: wrap; }
+  .summary { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; padding: 22px 0 26px; border-bottom: 1px solid var(--line); margin-bottom: 24px; flex-wrap: wrap; }
   .total-block { flex: 1; min-width: 200px; }
   .total-label { font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; font-weight: 600; }
-  .total-amount { font-family: Georgia, serif; font-size: clamp(40px, 9vw, 60px); font-weight: 700; line-height: 0.9; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+  .total-amount { font-family: Georgia, serif; font-size: clamp(40px, 9vw, 56px); font-weight: 700; line-height: 0.9; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
   .total-amount .sym { font-size: 0.5em; vertical-align: 0.18em; color: var(--muted); margin-right: 2px; }
   .total-amount.zero { color: var(--moss); }
   .meta-stats { display: flex; gap: 26px; }
@@ -63,7 +63,24 @@
   .stat .lbl { font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); margin-top: 2px; }
   .stat.paid .num { color: var(--moss); }
 
-  .addbar { background: var(--card); border: 1px solid var(--line); border-radius: 2px; padding: 18px; margin-bottom: 36px; }
+  /* ---------- 月度预算（工资/生活费） ---------- */
+  .budget { background: var(--card); border: 1px solid var(--line); border-radius: 2px; padding: 16px 18px; margin-bottom: 24px; }
+  .budget-head { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; font-weight: 700; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+  .budget-head::before { content: "≈"; color: var(--moss-deep); font-size: 15px; font-weight: 700; }
+  .budget-grid { display: flex; gap: 14px; align-items: flex-end; flex-wrap: wrap; }
+  .budget-field { flex: 1; min-width: 120px; }
+  .budget-field label { display: block; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 5px; font-weight: 600; }
+  .budget-field input { width: 100%; font-family: inherit; font-size: 15px; padding: 9px 11px; border: 1px solid var(--line); border-radius: 2px; background: #fff; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .budget-field input:focus { outline: none; border-color: var(--moss); box-shadow: 0 0 0 3px rgba(90,107,63,0.12); }
+  .budget-result { flex: 1.3; min-width: 180px; text-align: right; padding-left: 10px; }
+  .budget-result .br-label { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+  .budget-result .br-num { font-family: Georgia, serif; font-size: 30px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; color: var(--moss-deep); }
+  .budget-result .br-num.neg { color: var(--rust-deep); }
+  .budget-result .br-num .sym { font-size: 0.55em; color: var(--muted); vertical-align: 0.1em; }
+  .budget-payoff { font-size: 11px; color: var(--muted); margin-top: 14px; line-height: 1.5; }
+  .budget-payoff b { color: var(--ink); font-weight: 600; }
+
+  .addbar { background: var(--card); border: 1px solid var(--line); border-radius: 2px; padding: 18px; margin-bottom: 28px; }
   .addbar-title { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; font-weight: 700; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
   .addbar-title::before { content: "+"; color: var(--rust); font-size: 16px; font-weight: 700; }
   .addrow { display: flex; gap: 10px; flex-wrap: wrap; }
@@ -78,40 +95,55 @@
   .btn-primary:hover { background: #000; }
   .btn-add-field { display: flex; align-items: flex-end; }
 
-  .section-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 18px; }
+  /* ---------- 工具栏：搜索/筛选/排序 ---------- */
+  .toolbar { display: flex; gap: 10px; align-items: center; margin-bottom: 18px; flex-wrap: wrap; }
+  .search-box { flex: 1; min-width: 160px; position: relative; }
+  .search-box input { width: 100%; font-family: inherit; font-size: 14px; padding: 9px 12px 9px 32px; border: 1px solid var(--line); border-radius: 2px; background: #fff; color: var(--ink); }
+  .search-box input:focus { outline: none; border-color: var(--rust); box-shadow: 0 0 0 3px rgba(179,80,47,0.1); }
+  .search-box::before { content: "⌕"; position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 16px; }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 2px; overflow: hidden; background: #fff; }
+  .seg button { font-family: inherit; font-size: 12px; font-weight: 600; padding: 9px 13px; border: none; background: transparent; color: var(--muted); cursor: pointer; border-right: 1px solid var(--line); transition: background 0.15s, color 0.15s; }
+  .seg button:last-child { border-right: none; }
+  .seg button.active { background: var(--ink); color: var(--paper); }
+  .sort-select { font-family: inherit; font-size: 13px; padding: 9px 11px; border: 1px solid var(--line); border-radius: 2px; background: #fff; color: var(--ink); cursor: pointer; }
+  .sort-select:focus { outline: none; border-color: var(--rust); }
+
+  .section-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 16px; }
   .section-head h2 { font-family: Georgia, serif; font-size: 22px; font-weight: 700; }
   .section-head .rule { flex: 1; height: 1px; background: var(--line); }
   .section-head .count { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
 
-  .cards { display: flex; flex-direction: column; gap: 16px; }
-  .card { background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--rust); border-radius: 2px; padding: 18px 20px; box-shadow: 0 1px 2px var(--shadow); transition: box-shadow 0.2s, border-left-color 0.3s; }
-  .card.cleared { border-left-color: var(--moss); opacity: 0.78; }
+  /* ---------- 卡片：两列网格 ---------- */
+  .cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--rust); border-radius: 2px; padding: 16px 18px; box-shadow: 0 1px 2px var(--shadow); transition: box-shadow 0.2s, border-left-color 0.3s; }
+  .card.cleared { border-left-color: var(--moss); opacity: 0.82; }
   .card:hover { box-shadow: 0 4px 14px var(--shadow); }
-  .card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; }
-  .card-name { font-family: Georgia, serif; font-size: 21px; font-weight: 700; display: flex; align-items: center; gap: 9px; }
-  .badge { font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; font-weight: 700; padding: 3px 7px; border-radius: 2px; background: var(--moss); color: #fff; transform: translateY(-1px); }
+  .card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+  .card-name { font-family: Georgia, serif; font-size: 18px; font-weight: 700; display: flex; align-items: center; gap: 8px; word-break: break-all; }
+  .badge { font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 700; padding: 2px 6px; border-radius: 2px; background: var(--moss); color: #fff; transform: translateY(-1px); white-space: nowrap; }
   .card-owe { text-align: right; flex-shrink: 0; }
-  .owe-amount { font-family: Georgia, serif; font-size: 28px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+  .owe-amount { font-family: Georgia, serif; font-size: 23px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
   .owe-amount .sym { font-size: 0.55em; color: var(--muted); vertical-align: 0.1em; }
   .owe-amount.cleared { color: var(--moss); }
-  .owe-sub { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-top: 4px; }
-  .progress { margin: 16px 0 4px; }
+  .owe-sub { font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-top: 3px; }
+  .progress { margin: 14px 0 4px; }
   .progress-track { height: 5px; background: var(--line-soft); border-radius: 3px; overflow: hidden; }
   .progress-fill { height: 100%; background: var(--moss); border-radius: 3px; transition: width 0.4s ease; }
   .progress-meta { display: flex; justify-content: space-between; font-size: 10px; color: var(--muted); margin-top: 6px; font-variant-numeric: tabular-nums; }
   .progress-meta .repaid { color: var(--moss-deep); font-weight: 600; }
-  .card-actions { display: flex; gap: 8px; margin-top: 14px; align-items: center; flex-wrap: wrap; }
-  .mini-input { width: 110px; font-size: 14px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 2px; font-variant-numeric: tabular-nums; font-family: inherit; background: #fff; }
+  .card-actions { display: flex; gap: 7px; margin-top: 14px; align-items: center; flex-wrap: wrap; }
+  .mini-input { width: 78px; flex: 1; min-width: 60px; font-size: 14px; padding: 8px 9px; border: 1px solid var(--line); border-radius: 2px; font-variant-numeric: tabular-nums; font-family: inherit; background: #fff; }
   .mini-input:focus { outline: none; border-color: var(--rust); }
-  .btn-mini { font-size: 12px; font-weight: 600; padding: 8px 14px; border-radius: 2px; border: 1px solid; cursor: pointer; font-family: inherit; background: #fff; transition: background 0.15s, transform 0.08s; }
+  .btn-mini { font-size: 12px; font-weight: 600; padding: 8px 11px; border-radius: 2px; border: 1px solid; cursor: pointer; font-family: inherit; background: #fff; transition: background 0.15s, transform 0.08s; white-space: nowrap; }
   .btn-mini:active { transform: translateY(1px); }
   .btn-repay { border-color: var(--moss); color: var(--moss-deep); }
   .btn-repay:hover { background: var(--moss); color: #fff; }
   .btn-borrow { border-color: var(--rust); color: var(--rust-deep); }
   .btn-borrow:hover { background: var(--rust); color: #fff; }
-  .btn-del { margin-left: auto; border-color: var(--line); color: var(--muted); background: transparent; }
+  .btn-del { border-color: var(--line); color: var(--muted); background: transparent; padding: 8px 10px; }
   .btn-del:hover { background: #eee2d8; color: var(--rust-deep); border-color: var(--rust); }
-  .history-toggle { font-size: 11px; color: var(--muted); cursor: pointer; margin-top: 12px; user-select: none; display: inline-flex; align-items: center; gap: 5px; }
+  .card-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; }
+  .history-toggle { font-size: 11px; color: var(--muted); cursor: pointer; user-select: none; display: inline-flex; align-items: center; gap: 5px; }
   .history-toggle:hover { color: var(--ink); }
   .history { margin-top: 10px; border-top: 1px dashed var(--line); padding-top: 10px; }
   .h-item { display: flex; justify-content: space-between; font-size: 12px; padding: 5px 0; border-bottom: 1px solid var(--line-soft); font-variant-numeric: tabular-nums; }
@@ -122,13 +154,20 @@
   .h-tag.borrow { background: rgba(179,80,47,0.13); color: var(--rust-deep); }
   .h-amt.repay { color: var(--moss-deep); font-weight: 600; }
   .h-amt.borrow { color: var(--rust-deep); font-weight: 600; }
-  .empty { text-align: center; padding: 50px 20px; color: var(--muted); }
+  .empty { text-align: center; padding: 50px 20px; color: var(--muted); grid-column: 1 / -1; }
   .empty .mark { font-family: Georgia, serif; font-size: 44px; color: var(--line); margin-bottom: 12px; }
   .empty p { font-size: 14px; line-height: 1.6; }
   .footnote { margin-top: 40px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 11px; color: var(--muted); line-height: 1.6; }
   .banner { background: #fdf3e7; border: 1px solid var(--rust); color: var(--rust-deep); padding: 12px 16px; border-radius: 2px; font-size: 13px; line-height: 1.5; margin-bottom: 24px; }
   .hidden { display: none !important; }
-  @media (max-width: 520px) { .btn-primary { width: 100%; } .mini-input { flex: 1; min-width: 0; width: auto; } }
+
+  @media (max-width: 600px) {
+    .cards { grid-template-columns: 1fr; }
+    .btn-primary { width: 100%; }
+    .budget-result { text-align: left; padding-left: 0; }
+    .toolbar { gap: 8px; }
+    .seg button { padding: 8px 10px; }
+  }
 </style>
 </head>
 <body>
@@ -186,6 +225,26 @@
       </div>
     </div>
 
+    <!-- 月度预算 -->
+    <div class="budget">
+      <div class="budget-head">每月收支与可还款</div>
+      <div class="budget-grid">
+        <div class="budget-field">
+          <label>月工资收入</label>
+          <input id="incomeInput" type="number" placeholder="0" inputmode="decimal">
+        </div>
+        <div class="budget-field">
+          <label>月生活费</label>
+          <input id="expenseInput" type="number" placeholder="0" inputmode="decimal">
+        </div>
+        <div class="budget-result">
+          <div class="br-label">每月可用于还债</div>
+          <div class="br-num" id="budgetNet"><span class="sym">¥</span>0</div>
+        </div>
+      </div>
+      <div class="budget-payoff" id="budgetPayoff"></div>
+    </div>
+
     <div class="addbar" id="addbar">
       <div class="addbar-title">新增一笔债务</div>
       <div class="addrow">
@@ -195,13 +254,30 @@
       </div>
     </div>
 
+    <!-- 工具栏 -->
+    <div class="toolbar">
+      <div class="search-box"><input id="searchInput" type="text" placeholder="搜索平台 / 对象"></div>
+      <div class="seg" id="filterSeg">
+        <button data-filter="all" class="active">全部</button>
+        <button data-filter="open">未结清</button>
+        <button data-filter="cleared">已结清</button>
+      </div>
+      <select class="sort-select" id="sortSelect">
+        <option value="recent">最近添加</option>
+        <option value="owe_desc">未还 多→少</option>
+        <option value="owe_asc">未还 少→多</option>
+        <option value="principal_desc">本金 多→少</option>
+        <option value="principal_asc">本金 少→多</option>
+      </select>
+    </div>
+
     <div class="section-head">
       <h2>债务明细</h2><span class="rule"></span><span class="count" id="debtCount">0 笔</span>
     </div>
     <div id="list"></div>
 
     <div class="footnote">
-      每个账号的数据互相独立，只有你自己能看到、修改自己的记录。手机和电脑用同一网址、同一账号登录即可同步。
+      每个账号的数据互相独立，只有你自己能看到、修改自己的记录。手机和电脑用同一网址、同一账号登录即可同步。月工资和生活费仅用于估算每月可还款，不计入债务。
     </div>
   </div>
 </div>
@@ -215,10 +291,14 @@
   // ============================================================
 
   var TABLE = "debts";
+  var SETTINGS_ID = "__settings__";
   var configured = SUPABASE_URL.indexOf("supabase.co") !== -1 && SUPABASE_KEY.indexOf("eyJ") === 0;
-  var session = null;       // { access_token, user: {id, email} }
+  var session = null;
   var debts = [];
-  var authMode = "login";   // login | signup
+  var settings = { income: 0, expense: 0 };
+  var authMode = "login";
+  var ui = { filter: "all", sort: "recent", search: "" };
+  var saveTimer = null;
 
   var el = function (id) { return document.getElementById(id); };
   function setSync(state, text) { el('syncDot').className = 'dot' + (state ? ' ' + state : ''); el('syncText').textContent = text; }
@@ -234,11 +314,9 @@
     else h['Authorization'] = 'Bearer ' + SUPABASE_KEY;
     return h;
   }
-
   function saveSession() { try { localStorage.setItem('debt_session', JSON.stringify(session)); } catch (e) {} }
   function loadSession() { try { var r = localStorage.getItem('debt_session'); session = r ? JSON.parse(r) : null; } catch (e) { session = null; } }
   function clearSession() { session = null; try { localStorage.removeItem('debt_session'); } catch (e) {} }
-
   function showAuthMsg(text, type) { var m = el('authMsg'); m.textContent = text; m.className = 'auth-msg ' + type; }
 
   function doAuth() {
@@ -248,7 +326,6 @@
     if (pass.length < 6) { showAuthMsg('密码至少 6 位', 'err'); return; }
     el('authBtn').disabled = true;
     el('authBtn').textContent = authMode === 'login' ? '登录中…' : '注册中…';
-
     var endpoint = authMode === 'login' ? 'token?grant_type=password' : 'signup';
     fetch(SUPABASE_URL + '/auth/v1/' + endpoint, {
       method: 'POST',
@@ -268,9 +345,8 @@
         showAuthMsg(msg, 'err');
         return;
       }
-      // 注册成功但需要邮箱验证的情况
       if (authMode === 'signup' && !d.access_token) {
-        showAuthMsg('注册成功！如果邮箱验证已关闭，请直接切到「登录」登入；若收到验证邮件，请先验证。', 'ok');
+        showAuthMsg('注册成功！请切到「登录」登入。', 'ok');
         switchMode('login');
         return;
       }
@@ -278,9 +354,7 @@
         session = { access_token: d.access_token, refresh_token: d.refresh_token, user: { id: d.user.id, email: d.user.email } };
         saveSession();
         enterApp();
-      } else {
-        showAuthMsg('登录异常，请重试', 'err');
-      }
+      } else { showAuthMsg('登录异常，请重试', 'err'); }
     })
     .catch(function (e) { el('authBtn').disabled = false; el('authBtn').textContent = authMode === 'login' ? '登录' : '注册'; showAuthMsg('网络错误：' + e.message, 'err'); });
   }
@@ -297,7 +371,7 @@
     el('authMsg').className = 'auth-msg';
   }
 
-  function logout() { clearSession(); debts = []; el('appScreen').classList.add('hidden'); el('authScreen').classList.remove('hidden'); setSync('', '未登录'); el('authEmail').value = ''; el('authPass').value = ''; }
+  function logout() { clearSession(); debts = []; settings = { income: 0, expense: 0 }; el('appScreen').classList.add('hidden'); el('authScreen').classList.remove('hidden'); setSync('', '未登录'); el('authEmail').value = ''; el('authPass').value = ''; }
 
   function enterApp() {
     el('authScreen').classList.add('hidden');
@@ -307,7 +381,7 @@
     cloudLoad();
   }
 
-  // ---------- 数据读写（带账号过滤） ----------
+  // ---------- 数据读写 ----------
   function api(path, opts) {
     opts = opts || {};
     opts.headers = Object.assign(authHeaders(), opts.headers || {});
@@ -319,7 +393,17 @@
     api(TABLE + '?select=*&order=sort.desc', { method: 'GET' })
       .then(function (r) { if (r.status === 401) { throw { auth: true }; } if (!r.ok) throw new Error(r.status); return r.json(); })
       .then(function (rows) {
-        debts = rows.map(function (row) { return row.data ? Object.assign({ id: row.id, sort: row.sort }, row.data) : row; });
+        debts = [];
+        settings = { income: 0, expense: 0 };
+        rows.forEach(function (row) {
+          if (row.id === SETTINGS_ID) {
+            if (row.data) { settings.income = row.data.income || 0; settings.expense = row.data.expense || 0; }
+          } else {
+            debts.push(row.data ? Object.assign({ id: row.id, sort: row.sort }, row.data) : row);
+          }
+        });
+        el('incomeInput').value = settings.income ? settings.income : '';
+        el('expenseInput').value = settings.expense ? settings.expense : '';
         setSync('ok', '已同步'); render();
       })
       .catch(function (e) { if (e.auth) { showAuthMsg('登录已过期，请重新登录', 'err'); logout(); return; } setSync('err', '同步失败'); console.error(e); render(); });
@@ -328,6 +412,14 @@
   function cloudUpsert(d) {
     setSync('sync', '保存中…');
     var payload = { id: d.id, sort: d.sort, owner: session.user.id, data: { name: d.name, principal: d.principal, balance: d.balance, log: d.log, open: d.open } };
+    return api(TABLE, { method: 'POST', headers: { 'Prefer': 'resolution=merge-duplicates' }, body: JSON.stringify(payload) })
+      .then(function (r) { if (!r.ok) throw new Error(r.status); setSync('ok', '已同步'); })
+      .catch(function (e) { setSync('err', '保存失败'); console.error(e); });
+  }
+
+  function cloudSaveSettings() {
+    setSync('sync', '保存中…');
+    var payload = { id: SETTINGS_ID, sort: 0, owner: session.user.id, data: { income: settings.income, expense: settings.expense } };
     return api(TABLE, { method: 'POST', headers: { 'Prefer': 'resolution=merge-duplicates' }, body: JSON.stringify(payload) })
       .then(function (r) { if (!r.ok) throw new Error(r.status); setSync('ok', '已同步'); })
       .catch(function (e) { setSync('err', '保存失败'); console.error(e); });
@@ -369,7 +461,52 @@
   function toggleHist(id) { var d = find(id); if (d) { d.open = !d.open; render(); cloudUpsert(d); } }
   function find(id) { for (var i = 0; i < debts.length; i++) if (debts[i].id === id) return debts[i]; return null; }
 
+  function onBudgetChange() {
+    settings.income = parseFloat(el('incomeInput').value) || 0;
+    settings.expense = parseFloat(el('expenseInput').value) || 0;
+    renderBudget();
+    // 防抖：停止输入 600ms 后再存云端，避免每敲一下都发请求
+    if (saveTimer) clearTimeout(saveTimer);
+    saveTimer = setTimeout(function () { cloudSaveSettings(); }, 600);
+  }
+
   // ---------- 渲染 ----------
+  function renderBudget() {
+    var net = settings.income - settings.expense;
+    var netEl = el('budgetNet');
+    netEl.innerHTML = '<span class="sym">¥</span>' + fmt(net);
+    netEl.className = 'br-num' + (net < 0 ? ' neg' : '');
+    var totalOwed = 0;
+    debts.forEach(function (d) { totalOwed += d.balance; });
+    var payoff = el('budgetPayoff');
+    if (net > 0 && totalOwed > 0) {
+      var months = Math.ceil(totalOwed / net);
+      var yrs = Math.floor(months / 12), mos = months % 12;
+      var dur = (yrs > 0 ? yrs + ' 年 ' : '') + (mos > 0 ? mos + ' 个月' : (yrs > 0 ? '' : '不到 1 个月'));
+      payoff.innerHTML = '按当前节奏，全部还清约需 <b>' + dur.trim() + '</b>（未还总额 ¥' + fmt(totalOwed) + ' ÷ 每月可还 ¥' + fmt(net) + '）。';
+    } else if (net <= 0 && (settings.income > 0 || settings.expense > 0)) {
+      payoff.innerHTML = '生活费已不低于收入，<b>本月没有结余可用于还债</b>。';
+    } else if (totalOwed === 0 && net > 0) {
+      payoff.innerHTML = '当前没有未还债务。';
+    } else {
+      payoff.innerHTML = '填入月工资和生活费，自动估算多久能还清。';
+    }
+  }
+
+  function visibleDebts() {
+    var arr = debts.slice();
+    var kw = ui.search.trim().toLowerCase();
+    if (kw) arr = arr.filter(function (d) { return d.name.toLowerCase().indexOf(kw) !== -1; });
+    if (ui.filter === 'open') arr = arr.filter(function (d) { return d.balance > 0; });
+    else if (ui.filter === 'cleared') arr = arr.filter(function (d) { return d.balance <= 0; });
+    if (ui.sort === 'owe_desc') arr.sort(function (a, b) { return b.balance - a.balance; });
+    else if (ui.sort === 'owe_asc') arr.sort(function (a, b) { return a.balance - b.balance; });
+    else if (ui.sort === 'principal_desc') arr.sort(function (a, b) { return b.principal - a.principal; });
+    else if (ui.sort === 'principal_asc') arr.sort(function (a, b) { return a.principal - b.principal; });
+    else arr.sort(function (a, b) { return (b.sort || 0) - (a.sort || 0); });
+    return arr;
+  }
+
   function render() {
     var totalOwed = 0, totalRepaid = 0, cleared = 0;
     debts.forEach(function (d) { totalOwed += d.balance; d.log.forEach(function (l) { if (l.t === 'repay') totalRepaid += l.amt; }); if (d.balance <= 0) cleared++; });
@@ -378,13 +515,24 @@
     owedEl.className = 'total-amount' + (totalOwed <= 0 ? ' zero' : '');
     el('totalRepaid').textContent = '¥' + fmt(totalRepaid);
     el('clearedCount').textContent = cleared + '/' + debts.length;
-    el('debtCount').textContent = debts.length + ' 笔';
+
+    renderBudget();
+
+    var shown = visibleDebts();
+    el('debtCount').textContent = shown.length + ' / ' + debts.length + ' 笔';
 
     var list = el('list');
-    if (debts.length === 0) { list.innerHTML = '<div class="empty"><div class="mark">¥</div><p>还没有记录。<br>在上方添加第一笔债务开始记账吧。</p></div>'; return; }
+    if (debts.length === 0) {
+      list.innerHTML = '<div class="cards"><div class="empty"><div class="mark">¥</div><p>还没有记录。<br>在上方添加第一笔债务开始记账吧。</p></div></div>';
+      return;
+    }
+    if (shown.length === 0) {
+      list.innerHTML = '<div class="cards"><div class="empty"><div class="mark">⌕</div><p>没有符合条件的记录。<br>换个筛选或搜索词试试。</p></div></div>';
+      return;
+    }
 
     var html = '<div class="cards">';
-    debts.forEach(function (d) {
+    shown.forEach(function (d) {
       var isC = d.balance <= 0;
       var repaidTotal = d.principal - d.balance;
       var pct = d.principal > 0 ? Math.min(100, (repaidTotal / d.principal) * 100) : 0;
@@ -398,16 +546,18 @@
       html += '<button class="btn-mini btn-repay" data-act="repay" data-id="' + d.id + '">− 还款</button>';
       html += '<button class="btn-mini btn-borrow" data-act="borrow" data-id="' + d.id + '">+ 加借</button>';
       html += '<button class="btn-mini btn-del" data-act="del" data-id="' + d.id + '">删除</button></div>';
+      html += '<div class="card-foot">';
       if (d.log.length > 0) {
         html += '<div class="history-toggle" data-act="toggle" data-id="' + d.id + '">' + (d.open ? '▾ 收起记录' : '▸ 查看记录') + ' (' + d.log.length + ')</div>';
-        if (d.open) {
-          html += '<div class="history">';
-          d.log.forEach(function (l) {
-            html += '<div class="h-item"><div class="h-left"><span class="h-tag ' + (l.t === 'repay' ? 'repay' : 'borrow') + '">' + (l.t === 'repay' ? '还款' : '借入') + '</span><span>' + l.date + '</span></div>';
-            html += '<div class="h-amt ' + (l.t === 'repay' ? 'repay' : 'borrow') + '">' + (l.t === 'repay' ? '−' : '+') + '¥' + fmt(l.amt) + '</div></div>';
-          });
-          html += '</div>';
-        }
+      } else { html += '<span></span>'; }
+      html += '</div>';
+      if (d.open && d.log.length > 0) {
+        html += '<div class="history">';
+        d.log.forEach(function (l) {
+          html += '<div class="h-item"><div class="h-left"><span class="h-tag ' + (l.t === 'repay' ? 'repay' : 'borrow') + '">' + (l.t === 'repay' ? '还款' : '借入') + '</span><span>' + l.date + '</span></div>';
+          html += '<div class="h-amt ' + (l.t === 'repay' ? 'repay' : 'borrow') + '">' + (l.t === 'repay' ? '−' : '+') + '¥' + fmt(l.amt) + '</div></div>';
+        });
+        html += '</div>';
       }
       html += '</div>';
     });
@@ -425,6 +575,17 @@
   el('addBtn').addEventListener('click', addDebt);
   el('newName').addEventListener('keydown', function (e) { if (e.key === 'Enter') addDebt(); });
   el('newAmount').addEventListener('keydown', function (e) { if (e.key === 'Enter') addDebt(); });
+  el('incomeInput').addEventListener('input', onBudgetChange);
+  el('expenseInput').addEventListener('input', onBudgetChange);
+  el('searchInput').addEventListener('input', function () { ui.search = this.value; render(); });
+  el('sortSelect').addEventListener('change', function () { ui.sort = this.value; render(); });
+  el('filterSeg').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    ui.filter = b.getAttribute('data-filter');
+    Array.prototype.forEach.call(this.querySelectorAll('button'), function (x) { x.className = ''; });
+    b.className = 'active';
+    render();
+  });
   el('list').addEventListener('click', function (e) {
     var btn = e.target.closest('[data-act]'); if (!btn) return;
     var id = btn.getAttribute('data-id'), act = btn.getAttribute('data-act');
