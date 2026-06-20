@@ -41,6 +41,14 @@
   .auth-field label { display: block; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 5px; font-weight: 600; }
   .auth-field input { width: 100%; font-family: inherit; font-size: 15px; padding: 11px 12px; border: 1px solid var(--line); border-radius: 2px; background: #fff; color: var(--ink); }
   .auth-field input:focus { outline: none; border-color: var(--rust); box-shadow: 0 0 0 3px rgba(179, 80, 47, 0.12); }
+  .password-wrap { position: relative; }
+  .password-wrap input { padding-right: 58px; }
+  .password-toggle { position: absolute; right: 7px; top: 50%; transform: translateY(-50%); border: none; background: transparent; color: var(--rust-deep); font-family: inherit; font-size: 12px; font-weight: 600; padding: 5px 6px; cursor: pointer; }
+  .password-toggle:hover { color: var(--rust); }
+  .password-toggle:focus-visible { outline: 2px solid var(--rust); outline-offset: 1px; }
+  .remember-row { display: flex; align-items: center; gap: 7px; margin: -2px 0 14px; color: var(--ink); font-size: 12px; cursor: pointer; user-select: none; }
+  .remember-row input { width: 15px; height: 15px; accent-color: var(--rust); }
+  .remember-note { margin-left: auto; color: var(--muted); font-size: 10px; }
   .auth-btn { width: 100%; font-family: inherit; font-size: 15px; font-weight: 600; padding: 12px; border: none; border-radius: 2px; background: var(--ink); color: var(--paper); cursor: pointer; margin-top: 4px; transition: background 0.15s; }
   .auth-btn:hover { background: #000; }
   .auth-btn:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -240,8 +248,12 @@
       </div>
       <div class="auth-field">
         <label>密码</label>
-        <input id="authPass" type="password" placeholder="至少 6 位" autocomplete="current-password" minlength="6" required>
+        <div class="password-wrap">
+          <input id="authPass" type="password" placeholder="至少 6 位" autocomplete="current-password" minlength="6" required>
+          <button class="password-toggle" id="togglePassBtn" type="button" aria-label="显示密码" aria-pressed="false">显示</button>
+        </div>
       </div>
+      <label class="remember-row" id="rememberRow"><input id="rememberPass" type="checkbox"><span>记住密码</span><span class="remember-note">仅限私人设备</span></label>
       <button class="auth-btn" id="authBtn">登录</button>
       <div class="auth-msg" id="authMsg"></div>
       <div class="auth-hint" id="authHint">用邮箱和密码登录，只能看到自己的债务记录。<br>第一次用请先点上方「注册」。</div>
@@ -337,6 +349,7 @@
 
   var TABLE = "debts";
   var SETTINGS_ID = "__settings__";
+  var REMEMBER_KEY = "debt_remembered_login";
   var configured = SUPABASE_URL.indexOf("supabase.co") !== -1 && SUPABASE_KEY.indexOf("eyJ") === 0;
   var session = null;
   var debts = [];
@@ -364,6 +377,34 @@
   function loadSession() { try { var r = localStorage.getItem('debt_session'); session = r ? JSON.parse(r) : null; } catch (e) { session = null; } }
   function clearSession() { session = null; try { localStorage.removeItem('debt_session'); } catch (e) {} }
   function showAuthMsg(text, type) { var m = el('authMsg'); m.textContent = text; m.className = 'auth-msg ' + type; }
+
+  function setPasswordVisible(visible) {
+    el('authPass').type = visible ? 'text' : 'password';
+    el('togglePassBtn').textContent = visible ? '隐藏' : '显示';
+    el('togglePassBtn').setAttribute('aria-label', visible ? '隐藏密码' : '显示密码');
+    el('togglePassBtn').setAttribute('aria-pressed', visible ? 'true' : 'false');
+  }
+
+  function loadRememberedLogin() {
+    try {
+      var raw = localStorage.getItem(REMEMBER_KEY);
+      if (!raw) return;
+      var remembered = JSON.parse(raw);
+      if (!remembered.email || !remembered.password) throw new Error('invalid saved login');
+      el('authEmail').value = remembered.email;
+      el('authPass').value = remembered.password;
+      el('rememberPass').checked = true;
+    } catch (e) {
+      try { localStorage.removeItem(REMEMBER_KEY); } catch (ignore) {}
+    }
+  }
+
+  function updateRememberedLogin(email, password) {
+    try {
+      if (el('rememberPass').checked) localStorage.setItem(REMEMBER_KEY, JSON.stringify({ email: email, password: password }));
+      else localStorage.removeItem(REMEMBER_KEY);
+    } catch (e) {}
+  }
 
   function setAccountMenu(open) {
     var menu = el('accountMenu');
@@ -458,6 +499,7 @@
         return;
       }
       if (applyAuthSession(d)) {
+        if (authMode === 'login') updateRememberedLogin(email, pass);
         enterApp();
       } else { showAuthMsg('登录异常，请重试', 'err'); }
     })
@@ -470,13 +512,14 @@
     el('tabSignup').className = 'auth-tab' + (mode === 'signup' ? ' active' : '');
     el('authBtn').textContent = mode === 'login' ? '登录' : '注册';
     el('authPass').setAttribute('autocomplete', mode === 'login' ? 'current-password' : 'new-password');
+    el('rememberRow').classList.toggle('hidden', mode !== 'login');
     el('authHint').innerHTML = mode === 'login'
       ? '用邮箱和密码登录，只能看到自己的债务记录。<br>第一次用请先点上方「注册」。'
       : '注册一个新账号。和朋友各自注册，数据互不可见。';
     el('authMsg').className = 'auth-msg';
   }
 
-  function logout() { clearSession(); debts = []; settings = { income: 0, expense: 0, monthKey: "", monthPaid: 0 }; ui.editingId = null; setAccountMenu(false); el('accountMenu').classList.add('hidden'); el('appScreen').classList.add('hidden'); el('authScreen').classList.remove('hidden'); setSync('', '未登录'); el('authEmail').value = ''; el('authPass').value = ''; }
+  function logout() { clearSession(); debts = []; settings = { income: 0, expense: 0, monthKey: "", monthPaid: 0 }; ui.editingId = null; setAccountMenu(false); el('accountMenu').classList.add('hidden'); el('appScreen').classList.add('hidden'); el('authScreen').classList.remove('hidden'); setSync('', '未登录'); el('authEmail').value = ''; el('authPass').value = ''; setPasswordVisible(false); loadRememberedLogin(); }
 
   function enterApp() {
     el('authScreen').classList.add('hidden');
@@ -753,6 +796,8 @@
   // ---------- 事件 ----------
   el('tabLogin').addEventListener('click', function () { switchMode('login'); });
   el('tabSignup').addEventListener('click', function () { switchMode('signup'); });
+  el('togglePassBtn').addEventListener('click', function () { setPasswordVisible(el('authPass').type === 'password'); });
+  el('rememberPass').addEventListener('change', function () { if (!this.checked) { try { localStorage.removeItem(REMEMBER_KEY); } catch (e) {} } });
   el('accountBtn').addEventListener('click', function (e) { e.stopPropagation(); setAccountMenu(!el('accountMenu').classList.contains('open')); });
   el('accountMenu').addEventListener('click', function (e) { e.stopPropagation(); });
   document.addEventListener('click', function () { setAccountMenu(false); });
@@ -799,6 +844,7 @@
 
   // ---------- 启动 ----------
   if (!configured) { el('configBanner').classList.remove('hidden'); setSync('err', '未配置'); }
+  loadRememberedLogin();
   restoreSession();
 </script>
 </body>
