@@ -18,7 +18,7 @@
   }
   .wrap { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
   .masthead { border-bottom: 2.5px solid var(--ink); padding-bottom: 18px; display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
-  .mast-left { flex: 1; min-width: 200px; }
+  .mast-left { flex: 0 1 auto; }
   .eyebrow { font-size: 11px; letter-spacing: 0.32em; text-transform: uppercase; color: var(--rust); font-weight: 700; margin-bottom: 10px; }
   .title { font-family: Georgia, 'Songti SC', serif; font-size: clamp(34px, 7vw, 52px); font-weight: 700; letter-spacing: -0.02em; line-height: 0.95; }
   .title .accent { color: var(--rust); font-style: italic; }
@@ -53,6 +53,11 @@
   .user-email { font-weight: 600; color: var(--ink); }
   .logout-btn { font-size: 12px; font-weight: 600; padding: 6px 12px; border: 1px solid var(--line); border-radius: 2px; background: transparent; color: var(--muted); cursor: pointer; font-family: inherit; }
   .logout-btn:hover { background: #eee2d8; color: var(--rust-deep); border-color: var(--rust); }
+  .account-row { display: flex; justify-content: flex-end; padding: 14px 0 0; margin-bottom: 6px; }
+  .account-card { border: 1px solid var(--line); border-radius: 2px; background: var(--card); padding: 10px 14px; min-width: 240px; }
+  .account-card-label { font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--rust); font-weight: 700; margin-bottom: 6px; }
+  .account-card-body { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .account-email { font-size: 13px; font-weight: 600; color: var(--ink); word-break: break-all; }
 
   .summary { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 18px; padding: 28px 0 30px; border-bottom: 1px solid var(--line); margin-bottom: 24px; }
   .total-block { width: 100%; }
@@ -79,6 +84,12 @@
   .budget-result .br-label { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
   .budget-result .br-num { font-family: Georgia, serif; font-size: 30px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; color: var(--moss-deep); }
   .budget-result .br-num.neg { color: var(--rust-deep); }
+  .br-disp-wrap { margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--line); }
+  .br-disp-label { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+  .br-disp { font-family: Georgia, serif; font-size: 24px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; color: var(--ink); }
+  .br-disp.neg { color: var(--rust-deep); }
+  .br-disp .sym { font-size: 0.55em; color: var(--muted); vertical-align: 0.1em; }
+  .br-disp-sub { font-size: 10px; color: var(--muted); margin-top: 5px; line-height: 1.4; }
   .budget-result .br-num .sym { font-size: 0.55em; color: var(--muted); vertical-align: 0.1em; }
   .budget-payoff { font-size: 11px; color: var(--muted); margin-top: 14px; line-height: 1.5; }
   .budget-payoff b { color: var(--ink); font-weight: 600; }
@@ -215,10 +226,13 @@
 
   <!-- 主界面 -->
   <div id="appScreen" class="hidden">
-    <div style="display:flex; justify-content:flex-end; padding:12px 0; border-bottom:1px solid var(--line); margin-bottom:6px;">
-      <div class="user-bar">
-        <span>当前账号：<span class="user-email" id="userEmail"></span></span>
-        <button class="logout-btn" id="logoutBtn">退出登录</button>
+    <div class="account-row">
+      <div class="account-card">
+        <div class="account-card-label">个人账号</div>
+        <div class="account-card-body">
+          <span class="account-email" id="userEmail"></span>
+          <button class="logout-btn" id="logoutBtn">退出登录</button>
+        </div>
       </div>
     </div>
 
@@ -252,6 +266,11 @@
         <div class="budget-result">
           <div class="br-label">每月可用于还债</div>
           <div class="br-num" id="budgetNet"><span class="sym">¥</span>0</div>
+          <div class="br-disp-wrap">
+            <div class="br-disp-label">本月剩余可支配</div>
+            <div class="br-disp" id="budgetDisp"><span class="sym">¥</span>0</div>
+            <div class="br-disp-sub" id="budgetDispSub"></div>
+          </div>
         </div>
       </div>
       <div class="budget-payoff" id="budgetPayoff"></div>
@@ -307,7 +326,7 @@
   var configured = SUPABASE_URL.indexOf("supabase.co") !== -1 && SUPABASE_KEY.indexOf("eyJ") === 0;
   var session = null;
   var debts = [];
-  var settings = { income: 0, expense: 0 };
+  var settings = { income: 0, expense: 0, monthKey: "", monthPaid: 0 };
   var authMode = "login";
   var ui = { filter: "all", sort: "recent", search: "" };
   var saveTimer = null;
@@ -383,7 +402,7 @@
     el('authMsg').className = 'auth-msg';
   }
 
-  function logout() { clearSession(); debts = []; settings = { income: 0, expense: 0 }; el('appScreen').classList.add('hidden'); el('authScreen').classList.remove('hidden'); setSync('', '未登录'); el('authEmail').value = ''; el('authPass').value = ''; }
+  function logout() { clearSession(); debts = []; settings = { income: 0, expense: 0, monthKey: "", monthPaid: 0 }; el('appScreen').classList.add('hidden'); el('authScreen').classList.remove('hidden'); setSync('', '未登录'); el('authEmail').value = ''; el('authPass').value = ''; }
 
   function enterApp() {
     el('authScreen').classList.add('hidden');
@@ -406,10 +425,10 @@
       .then(function (r) { if (r.status === 401) { throw { auth: true }; } if (!r.ok) throw new Error(r.status); return r.json(); })
       .then(function (rows) {
         debts = [];
-        settings = { income: 0, expense: 0 };
+        settings = { income: 0, expense: 0, monthKey: "", monthPaid: 0 };
         rows.forEach(function (row) {
           if (row.id === SETTINGS_ID) {
-            if (row.data) { settings.income = row.data.income || 0; settings.expense = row.data.expense || 0; }
+            if (row.data) { settings.income = row.data.income || 0; settings.expense = row.data.expense || 0; settings.monthKey = row.data.monthKey || ''; settings.monthPaid = row.data.monthPaid || 0; }
           } else {
             debts.push(row.data ? Object.assign({ id: row.id, sort: row.sort }, row.data) : row);
           }
@@ -417,7 +436,9 @@
         el('incomeInput').value = settings.income ? settings.income : '';
         el('expenseInput').value = settings.expense ? settings.expense : '';
         el('dailyInput').value = settings.expense ? Math.round((settings.expense / 30) * 100) / 100 : '';
+        var didReset = ensureMonth();
         setSync('ok', '已同步'); render();
+        if (didReset) cloudSaveSettings();
       })
       .catch(function (e) { if (e.auth) { showAuthMsg('登录已过期，请重新登录', 'err'); logout(); return; } setSync('err', '同步失败'); console.error(e); render(); });
   }
@@ -432,7 +453,7 @@
 
   function cloudSaveSettings() {
     setSync('sync', '保存中…');
-    var payload = { id: SETTINGS_ID, sort: 0, owner: session.user.id, data: { income: settings.income, expense: settings.expense } };
+    var payload = { id: SETTINGS_ID, sort: 0, owner: session.user.id, data: { income: settings.income, expense: settings.expense, monthKey: settings.monthKey, monthPaid: settings.monthPaid } };
     return api(TABLE, { method: 'POST', headers: { 'Prefer': 'resolution=merge-duplicates' }, body: JSON.stringify(payload) })
       .then(function (r) { if (!r.ok) throw new Error(r.status); setSync('ok', '已同步'); })
       .catch(function (e) { setSync('err', '保存失败'); console.error(e); });
@@ -461,7 +482,10 @@
     var pay = Math.min(amt, d.balance);
     d.balance = Math.max(0, d.balance - amt);
     d.log.unshift({ t: 'repay', amt: pay, date: today(), id: uid() });
-    render(); cloudUpsert(d);
+    // 计入本月已还（跨月先重置）
+    ensureMonth();
+    settings.monthPaid = round2(settings.monthPaid + pay);
+    render(); cloudUpsert(d); cloudSaveSettings();
   }
   function borrowMore(id) {
     var amt = parseFloat(el('inp_' + id).value); if (isNaN(amt) || amt <= 0) return;
@@ -475,6 +499,17 @@
   function find(id) { for (var i = 0; i < debts.length; i++) if (debts[i].id === id) return debts[i]; return null; }
 
   function round2(n) { return Math.round((n + Number.EPSILON) * 100) / 100; }
+  function curMonthKey() { var d = new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1); }
+  // 跨月检测：若记录的月份不是本月，则把“本月已还”清零并记下新月份
+  function ensureMonth() {
+    var mk = curMonthKey();
+    if (settings.monthKey !== mk) {
+      settings.monthKey = mk;
+      settings.monthPaid = 0;
+      return true; // 发生了重置
+    }
+    return false;
+  }
   function scheduleSave() {
     if (saveTimer) clearTimeout(saveTimer);
     saveTimer = setTimeout(function () { cloudSaveSettings(); }, 600);
@@ -499,10 +534,18 @@
 
   // ---------- 渲染 ----------
   function renderBudget() {
+    ensureMonth();
     var net = settings.income - settings.expense;
     var netEl = el('budgetNet');
     netEl.innerHTML = '<span class="sym">¥</span>' + fmt(net);
     netEl.className = 'br-num' + (net < 0 ? ' neg' : '');
+    // 本月剩余可支配 = (工资 - 生活费) - 本月已还
+    var disp = net - settings.monthPaid;
+    var dispEl = el('budgetDisp');
+    dispEl.innerHTML = '<span class="sym">¥</span>' + fmt(disp);
+    dispEl.className = 'br-disp' + (disp < 0 ? ' neg' : '');
+    var d = new Date();
+    el('budgetDispSub').textContent = (d.getMonth() + 1) + ' 月已还 ¥' + fmt(settings.monthPaid) + '，下月 1 号自动重置';
     var totalOwed = 0;
     debts.forEach(function (d) { totalOwed += d.balance; });
     var payoff = el('budgetPayoff');
