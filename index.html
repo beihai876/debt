@@ -23,6 +23,8 @@
   .title { font-family: Georgia, 'Songti SC', serif; font-size: clamp(34px, 7vw, 52px); font-weight: 700; letter-spacing: -0.02em; line-height: 0.95; }
   .title .accent { color: var(--rust); font-style: italic; }
   .sync-status { font-size: 11px; color: var(--muted); display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+  .mast-right { display: flex; flex-direction: column; align-items: flex-end; gap: 7px; }
+  .today-date { font-family: Georgia, 'Songti SC', serif; font-size: 14px; font-weight: 600; color: var(--ink); letter-spacing: 0.01em; }
   .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); flex-shrink: 0; }
   .dot.ok { background: var(--moss); }
   .dot.err { background: var(--rust); }
@@ -52,15 +54,16 @@
   .logout-btn { font-size: 12px; font-weight: 600; padding: 6px 12px; border: 1px solid var(--line); border-radius: 2px; background: transparent; color: var(--muted); cursor: pointer; font-family: inherit; }
   .logout-btn:hover { background: #eee2d8; color: var(--rust-deep); border-color: var(--rust); }
 
-  .summary { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; padding: 22px 0 26px; border-bottom: 1px solid var(--line); margin-bottom: 24px; flex-wrap: wrap; }
-  .total-block { flex: 1; min-width: 200px; }
-  .total-label { font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; font-weight: 600; }
-  .total-amount { font-family: Georgia, serif; font-size: clamp(40px, 9vw, 56px); font-weight: 700; line-height: 0.9; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+  .summary { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 18px; padding: 28px 0 30px; border-bottom: 1px solid var(--line); margin-bottom: 24px; }
+  .total-block { width: 100%; }
+  .total-label { font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; font-weight: 600; }
+  .total-amount { font-family: Georgia, serif; font-size: clamp(44px, 10vw, 64px); font-weight: 700; line-height: 0.9; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
   .total-amount .sym { font-size: 0.5em; vertical-align: 0.18em; color: var(--muted); margin-right: 2px; }
   .total-amount.zero { color: var(--moss); }
-  .meta-stats { display: flex; gap: 26px; }
+  .meta-stats { display: flex; gap: 56px; justify-content: center; }
+  .stat { text-align: center; }
   .stat .num { font-family: Georgia, serif; font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
-  .stat .lbl { font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); margin-top: 2px; }
+  .stat .lbl { font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); margin-top: 4px; }
   .stat.paid .num { color: var(--moss); }
 
   /* ---------- 月度预算（工资/生活费） ---------- */
@@ -163,6 +166,8 @@
 
   @media (max-width: 600px) {
     .cards { grid-template-columns: 1fr; }
+    .mast-right { flex-direction: row; align-items: center; gap: 12px; }
+    .meta-stats { gap: 40px; }
     .btn-primary { width: 100%; }
     .budget-result { text-align: left; padding-left: 0; }
     .toolbar { gap: 8px; }
@@ -177,7 +182,10 @@
       <div class="eyebrow">个人欠款台账 · Accounts</div>
       <h1 class="title">还<span class="accent">债</span>记录</h1>
     </div>
-    <div class="sync-status"><span class="dot" id="syncDot"></span><span id="syncText">未登录</span></div>
+    <div class="mast-right">
+      <div class="today-date" id="todayDate"></div>
+      <div class="sync-status"><span class="dot" id="syncDot"></span><span id="syncText">未登录</span></div>
+    </div>
   </div>
 
   <div id="configBanner" class="banner hidden">
@@ -236,6 +244,10 @@
         <div class="budget-field">
           <label>月生活费</label>
           <input id="expenseInput" type="number" placeholder="0" inputmode="decimal">
+        </div>
+        <div class="budget-field">
+          <label>日生活费</label>
+          <input id="dailyInput" type="number" placeholder="0" inputmode="decimal">
         </div>
         <div class="budget-result">
           <div class="br-label">每月可用于还债</div>
@@ -404,6 +416,7 @@
         });
         el('incomeInput').value = settings.income ? settings.income : '';
         el('expenseInput').value = settings.expense ? settings.expense : '';
+        el('dailyInput').value = settings.expense ? Math.round((settings.expense / 30) * 100) / 100 : '';
         setSync('ok', '已同步'); render();
       })
       .catch(function (e) { if (e.auth) { showAuthMsg('登录已过期，请重新登录', 'err'); logout(); return; } setSync('err', '同步失败'); console.error(e); render(); });
@@ -461,13 +474,27 @@
   function toggleHist(id) { var d = find(id); if (d) { d.open = !d.open; render(); cloudUpsert(d); } }
   function find(id) { for (var i = 0; i < debts.length; i++) if (debts[i].id === id) return debts[i]; return null; }
 
-  function onBudgetChange() {
-    settings.income = parseFloat(el('incomeInput').value) || 0;
-    settings.expense = parseFloat(el('expenseInput').value) || 0;
-    renderBudget();
-    // 防抖：停止输入 600ms 后再存云端，避免每敲一下都发请求
+  function round2(n) { return Math.round((n + Number.EPSILON) * 100) / 100; }
+  function scheduleSave() {
     if (saveTimer) clearTimeout(saveTimer);
     saveTimer = setTimeout(function () { cloudSaveSettings(); }, 600);
+  }
+  function onIncomeChange() {
+    settings.income = parseFloat(el('incomeInput').value) || 0;
+    renderBudget(); scheduleSave();
+  }
+  // 改“月生活费” → 自动算日生活费
+  function onMonthlyExpenseChange() {
+    settings.expense = parseFloat(el('expenseInput').value) || 0;
+    el('dailyInput').value = settings.expense ? round2(settings.expense / 30) : '';
+    renderBudget(); scheduleSave();
+  }
+  // 改“日生活费” → 自动算月生活费（×30）
+  function onDailyExpenseChange() {
+    var daily = parseFloat(el('dailyInput').value) || 0;
+    settings.expense = round2(daily * 30);
+    el('expenseInput').value = settings.expense ? settings.expense : '';
+    renderBudget(); scheduleSave();
   }
 
   // ---------- 渲染 ----------
@@ -489,7 +516,7 @@
     } else if (totalOwed === 0 && net > 0) {
       payoff.innerHTML = '当前没有未还债务。';
     } else {
-      payoff.innerHTML = '填入月工资和生活费，自动估算多久能还清。';
+      payoff.innerHTML = '填入月工资和生活费（月/日生活费会自动换算，按 1 个月 = 30 天），自动估算多久能还清。';
     }
   }
 
@@ -575,8 +602,9 @@
   el('addBtn').addEventListener('click', addDebt);
   el('newName').addEventListener('keydown', function (e) { if (e.key === 'Enter') addDebt(); });
   el('newAmount').addEventListener('keydown', function (e) { if (e.key === 'Enter') addDebt(); });
-  el('incomeInput').addEventListener('input', onBudgetChange);
-  el('expenseInput').addEventListener('input', onBudgetChange);
+  el('incomeInput').addEventListener('input', onIncomeChange);
+  el('expenseInput').addEventListener('input', onMonthlyExpenseChange);
+  el('dailyInput').addEventListener('input', onDailyExpenseChange);
   el('searchInput').addEventListener('input', function () { ui.search = this.value; render(); });
   el('sortSelect').addEventListener('change', function () { ui.sort = this.value; render(); });
   el('filterSeg').addEventListener('click', function (e) {
@@ -592,6 +620,15 @@
     if (act === 'repay') repay(id); else if (act === 'borrow') borrowMore(id);
     else if (act === 'del') removeDebt(id); else if (act === 'toggle') toggleHist(id);
   });
+
+  // ---------- 今天日期 ----------
+  function renderToday() {
+    var d = new Date();
+    el('todayDate').textContent = d.getFullYear() + '年' + (d.getMonth() + 1) + '月' + d.getDate() + '日';
+  }
+  renderToday();
+  // 跨过午夜自动更新日期
+  setInterval(renderToday, 60000);
 
   // ---------- 启动 ----------
   if (!configured) { el('configBanner').classList.remove('hidden'); setSync('err', '未配置'); }
