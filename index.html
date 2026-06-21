@@ -41,6 +41,14 @@
   .auth-field label { display: block; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 5px; font-weight: 600; }
   .auth-field input { width: 100%; font-family: inherit; font-size: 15px; padding: 11px 12px; border: 1px solid var(--line); border-radius: 2px; background: #fff; color: var(--ink); }
   .auth-field input:focus { outline: none; border-color: var(--rust); box-shadow: 0 0 0 3px rgba(179, 80, 47, 0.12); }
+  .password-wrap { position: relative; }
+  .password-wrap input { padding-right: 58px; }
+  .password-toggle { position: absolute; right: 7px; top: 50%; transform: translateY(-50%); border: none; background: transparent; color: var(--rust-deep); font-family: inherit; font-size: 12px; font-weight: 600; padding: 5px 6px; cursor: pointer; }
+  .password-toggle:hover { color: var(--rust); }
+  .password-toggle:focus-visible { outline: 2px solid var(--rust); outline-offset: 1px; }
+  .remember-row { display: flex; align-items: center; gap: 7px; margin: -2px 0 14px; color: var(--ink); font-size: 12px; cursor: pointer; user-select: none; }
+  .remember-row input { width: 15px; height: 15px; accent-color: var(--rust); }
+  .remember-note { margin-left: auto; color: var(--muted); font-size: 10px; }
   .auth-btn { width: 100%; font-family: inherit; font-size: 15px; font-weight: 600; padding: 12px; border: none; border-radius: 2px; background: var(--ink); color: var(--paper); cursor: pointer; margin-top: 4px; transition: background 0.15s; }
   .auth-btn:hover { background: #000; }
   .auth-btn:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -102,8 +110,8 @@
   .addrow { display: flex; gap: 10px; flex-wrap: wrap; }
   .field { flex: 1; min-width: 130px; }
   .field label { display: block; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 5px; font-weight: 600; }
-  .field input { width: 100%; font-family: inherit; font-size: 15px; padding: 11px 12px; border: 1px solid var(--line); border-radius: 2px; background: #fff; color: var(--ink); }
-  .field input:focus { outline: none; border-color: var(--rust); box-shadow: 0 0 0 3px rgba(179, 80, 47, 0.12); }
+  .field input, .field select { width: 100%; font-family: inherit; font-size: 15px; padding: 11px 12px; border: 1px solid var(--line); border-radius: 2px; background: #fff; color: var(--ink); }
+  .field input:focus, .field select:focus { outline: none; border-color: var(--rust); box-shadow: 0 0 0 3px rgba(179, 80, 47, 0.12); }
   .field input::placeholder { color: #bcae9c; }
   .btn { font-family: inherit; font-size: 14px; font-weight: 600; padding: 11px 22px; border: none; border-radius: 2px; cursor: pointer; transition: transform 0.08s, background 0.15s; }
   .btn:active { transform: translateY(1px); }
@@ -137,6 +145,7 @@
   .card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
   .card-name { font-family: Georgia, serif; font-size: 18px; font-weight: 700; display: flex; align-items: center; gap: 8px; word-break: break-all; }
   .badge { font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 700; padding: 2px 6px; border-radius: 2px; background: var(--moss); color: #fff; transform: translateY(-1px); white-space: nowrap; }
+  .badge.category { background: rgba(179,80,47,0.12); color: var(--rust-deep); border: 1px solid rgba(179,80,47,0.35); }
   .card-owe { text-align: right; flex-shrink: 0; }
   .owe-amount { font-family: Georgia, serif; font-size: 23px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
   .owe-amount .sym { font-size: 0.55em; color: var(--muted); vertical-align: 0.1em; }
@@ -163,13 +172,42 @@
   .edit-panel { margin-top: 12px; padding: 13px; border: 1px solid var(--line); background: #fff; }
   .edit-grid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(120px, 1fr); gap: 10px; }
   .edit-field label { display: block; font-size: 9px; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 5px; font-weight: 600; }
-  .edit-field input { width: 100%; font-family: inherit; font-size: 14px; padding: 9px 10px; border: 1px solid var(--line); border-radius: 2px; background: var(--card); color: var(--ink); }
-  .edit-field input:focus { outline: none; border-color: var(--rust); box-shadow: 0 0 0 3px rgba(179,80,47,0.1); }
+  .edit-field input, .edit-field select { width: 100%; font-family: inherit; font-size: 14px; padding: 9px 10px; border: 1px solid var(--line); border-radius: 2px; background: var(--card); color: var(--ink); }
+  .edit-field input:focus, .edit-field select:focus { outline: none; border-color: var(--rust); box-shadow: 0 0 0 3px rgba(179,80,47,0.1); }
   .edit-note { font-size: 10px; color: var(--muted); margin-top: 7px; line-height: 1.5; }
   .edit-error { min-height: 18px; font-size: 11px; color: var(--rust-deep); margin-top: 6px; }
   .edit-actions { display: flex; justify-content: flex-end; gap: 7px; }
   .btn-save { border-color: var(--moss); background: var(--moss); color: #fff; }
   .btn-save:hover { background: var(--moss-deep); }
+  .btn-scan { border-color: var(--gold); color: #805713; }
+  .btn-scan:hover { background: var(--gold); color: #fff; }
+  .bill-summary { margin-top: 12px; padding: 10px 12px; border: 1px solid var(--line); background: rgba(192,138,45,0.06); }
+  .bill-summary-main { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+  .bill-summary-title { font-size: 11px; font-weight: 700; color: var(--ink); }
+  .bill-summary-amount { font-family: Georgia, serif; font-size: 18px; font-weight: 700; color: var(--rust-deep); }
+  .bill-summary-sub { font-size: 10px; color: var(--muted); margin-top: 5px; line-height: 1.5; }
+  .bill-panel { margin-top: 12px; padding: 14px; border: 1px solid var(--gold); background: #fffcf5; }
+  .bill-panel-head { display: flex; justify-content: space-between; gap: 10px; align-items: center; margin-bottom: 10px; }
+  .bill-panel-title { font-size: 12px; font-weight: 700; color: var(--ink); }
+  .bill-panel-note { font-size: 10px; color: var(--muted); line-height: 1.55; margin-bottom: 10px; }
+  .bill-upload { display: grid; gap: 9px; }
+  .bill-file { width: 100%; font-size: 12px; color: var(--muted); }
+  .bill-preview { display: none; width: 100%; max-height: 240px; object-fit: contain; border: 1px solid var(--line); background: #fff; }
+  .bill-preview.show { display: block; }
+  .bill-status { min-height: 18px; font-size: 11px; color: var(--muted); line-height: 1.5; }
+  .bill-status.err { color: var(--rust-deep); }
+  .bill-editor-meta { display: grid; grid-template-columns: 1.4fr 0.6fr; gap: 8px; margin-bottom: 10px; }
+  .bill-editor input { width: 100%; font-family: inherit; font-size: 12px; padding: 8px 9px; border: 1px solid var(--line); background: #fff; color: var(--ink); }
+  .bill-editor input:focus { outline: none; border-color: var(--rust); }
+  .bill-row { display: grid; grid-template-columns: 0.65fr 1fr 0.75fr 1fr auto; gap: 6px; align-items: center; margin-bottom: 7px; }
+  .bill-row-head { font-size: 9px; color: var(--muted); letter-spacing: 0.06em; text-align: left; }
+  .bill-remove-row { border: none; background: transparent; color: var(--rust-deep); cursor: pointer; font-size: 16px; padding: 4px; }
+  .bill-warnings { font-size: 10px; color: #805713; line-height: 1.5; margin: 8px 0; }
+  .bill-editor-actions, .bill-list-actions { display: flex; gap: 7px; flex-wrap: wrap; justify-content: flex-end; margin-top: 10px; }
+  .bill-list { margin-top: 10px; border-top: 1px dashed var(--line); padding-top: 7px; }
+  .bill-item { display: grid; grid-template-columns: 0.7fr 1fr auto; gap: 8px; font-size: 11px; padding: 6px 0; border-bottom: 1px solid var(--line-soft); }
+  .bill-item:last-child { border-bottom: none; }
+  .bill-item .amt { font-weight: 700; color: var(--rust-deep); text-align: right; }
   .card-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; }
   .history-toggle { font-size: 11px; color: var(--muted); cursor: pointer; user-select: none; display: inline-flex; align-items: center; gap: 5px; }
   .history-toggle:hover { color: var(--ink); }
@@ -198,6 +236,11 @@
     .toolbar { gap: 8px; }
     .seg button { padding: 8px 10px; }
     .edit-grid { grid-template-columns: 1fr; }
+    .bill-editor-meta { grid-template-columns: 1fr; }
+    .bill-row { grid-template-columns: 1fr 1fr; padding: 9px; border: 1px solid var(--line-soft); }
+    .bill-row-head { display: none; }
+    .bill-row input:nth-child(3), .bill-row input:nth-child(4) { grid-column: span 1; }
+    .bill-remove-row { justify-self: end; }
   }
   @media (min-width: 961px) { .masthead { margin-left: -48px; margin-right: -48px; } }
 </style>
@@ -240,8 +283,12 @@
       </div>
       <div class="auth-field">
         <label>密码</label>
-        <input id="authPass" type="password" placeholder="至少 6 位" autocomplete="current-password" minlength="6" required>
+        <div class="password-wrap">
+          <input id="authPass" type="password" placeholder="至少 6 位" autocomplete="current-password" minlength="6" required>
+          <button class="password-toggle" id="togglePassBtn" type="button" aria-label="显示密码" aria-pressed="false">显示</button>
+        </div>
       </div>
+      <label class="remember-row" id="rememberRow"><input id="rememberPass" type="checkbox"><span>记住密码</span><span class="remember-note">仅限私人设备</span></label>
       <button class="auth-btn" id="authBtn">登录</button>
       <div class="auth-msg" id="authMsg"></div>
       <div class="auth-hint" id="authHint">用邮箱和密码登录，只能看到自己的债务记录。<br>第一次用请先点上方「注册」。</div>
@@ -294,6 +341,7 @@
       <div class="addbar-title">新增一笔债务</div>
       <div class="addrow">
         <div class="field"><label>平台 / 对象</label><input id="newName" placeholder="如：花呗、张三、信用卡"></div>
+        <div class="field" style="flex: 0 1 150px;"><label>债务类目</label><select id="newCategory"><option value="online_loan">网贷</option><option value="credit_card">信用卡</option><option value="personal">个人借款</option><option value="other" selected>其他</option></select></div>
         <div class="field" style="flex: 0 1 180px;"><label>欠款金额</label><input id="newAmount" type="number" placeholder="0.00" min="0" step="0.01" inputmode="decimal"></div>
         <div class="btn-add-field"><button class="btn btn-primary" id="addBtn">记一笔</button></div>
       </div>
@@ -327,6 +375,7 @@
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@7.0.0/dist/tesseract.min.js"></script>
 <script>
   // ============================================================
   //  ↓↓↓ 只需修改下面这两行 ↓↓↓
@@ -337,12 +386,13 @@
 
   var TABLE = "debts";
   var SETTINGS_ID = "__settings__";
+  var REMEMBER_KEY = "debt_remembered_login";
   var configured = SUPABASE_URL.indexOf("supabase.co") !== -1 && SUPABASE_KEY.indexOf("eyJ") === 0;
   var session = null;
   var debts = [];
   var settings = { income: 0, expense: 0, monthKey: "", monthPaid: 0 };
   var authMode = "login";
-  var ui = { filter: "all", sort: "recent", search: "", editingId: null };
+  var ui = { filter: "all", sort: "recent", search: "", editingId: null, billPanel: {}, billDrafts: {}, billUploads: {}, billOpen: {} };
   var saveTimer = null;
   var refreshPromise = null;
 
@@ -352,6 +402,12 @@
   function today() { var d = new Date(); return (d.getMonth() + 1) + '月' + d.getDate() + '日'; }
   function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function categoryLabel(value) { return { online_loan: '网贷', credit_card: '信用卡', personal: '个人借款', other: '其他' }[value] || '其他'; }
+  function categoryOptions(selected) {
+    return ['online_loan', 'credit_card', 'personal', 'other'].map(function (value) {
+      return '<option value="' + value + '"' + (value === selected ? ' selected' : '') + '>' + categoryLabel(value) + '</option>';
+    }).join('');
+  }
 
   // ---------- 认证 ----------
   function authHeaders() {
@@ -364,6 +420,34 @@
   function loadSession() { try { var r = localStorage.getItem('debt_session'); session = r ? JSON.parse(r) : null; } catch (e) { session = null; } }
   function clearSession() { session = null; try { localStorage.removeItem('debt_session'); } catch (e) {} }
   function showAuthMsg(text, type) { var m = el('authMsg'); m.textContent = text; m.className = 'auth-msg ' + type; }
+
+  function setPasswordVisible(visible) {
+    el('authPass').type = visible ? 'text' : 'password';
+    el('togglePassBtn').textContent = visible ? '隐藏' : '显示';
+    el('togglePassBtn').setAttribute('aria-label', visible ? '隐藏密码' : '显示密码');
+    el('togglePassBtn').setAttribute('aria-pressed', visible ? 'true' : 'false');
+  }
+
+  function loadRememberedLogin() {
+    try {
+      var raw = localStorage.getItem(REMEMBER_KEY);
+      if (!raw) return;
+      var remembered = JSON.parse(raw);
+      if (!remembered.email || !remembered.password) throw new Error('invalid saved login');
+      el('authEmail').value = remembered.email;
+      el('authPass').value = remembered.password;
+      el('rememberPass').checked = true;
+    } catch (e) {
+      try { localStorage.removeItem(REMEMBER_KEY); } catch (ignore) {}
+    }
+  }
+
+  function updateRememberedLogin(email, password) {
+    try {
+      if (el('rememberPass').checked) localStorage.setItem(REMEMBER_KEY, JSON.stringify({ email: email, password: password }));
+      else localStorage.removeItem(REMEMBER_KEY);
+    } catch (e) {}
+  }
 
   function setAccountMenu(open) {
     var menu = el('accountMenu');
@@ -458,6 +542,7 @@
         return;
       }
       if (applyAuthSession(d)) {
+        if (authMode === 'login') updateRememberedLogin(email, pass);
         enterApp();
       } else { showAuthMsg('登录异常，请重试', 'err'); }
     })
@@ -470,13 +555,14 @@
     el('tabSignup').className = 'auth-tab' + (mode === 'signup' ? ' active' : '');
     el('authBtn').textContent = mode === 'login' ? '登录' : '注册';
     el('authPass').setAttribute('autocomplete', mode === 'login' ? 'current-password' : 'new-password');
+    el('rememberRow').classList.toggle('hidden', mode !== 'login');
     el('authHint').innerHTML = mode === 'login'
       ? '用邮箱和密码登录，只能看到自己的债务记录。<br>第一次用请先点上方「注册」。'
       : '注册一个新账号。和朋友各自注册，数据互不可见。';
     el('authMsg').className = 'auth-msg';
   }
 
-  function logout() { clearSession(); debts = []; settings = { income: 0, expense: 0, monthKey: "", monthPaid: 0 }; ui.editingId = null; setAccountMenu(false); el('accountMenu').classList.add('hidden'); el('appScreen').classList.add('hidden'); el('authScreen').classList.remove('hidden'); setSync('', '未登录'); el('authEmail').value = ''; el('authPass').value = ''; }
+  function logout() { clearSession(); debts = []; settings = { income: 0, expense: 0, monthKey: "", monthPaid: 0 }; ui.editingId = null; setAccountMenu(false); el('accountMenu').classList.add('hidden'); el('appScreen').classList.add('hidden'); el('authScreen').classList.remove('hidden'); setSync('', '未登录'); el('authEmail').value = ''; el('authPass').value = ''; setPasswordVisible(false); loadRememberedLogin(); }
 
   function enterApp() {
     el('authScreen').classList.add('hidden');
@@ -509,7 +595,10 @@
           if (row.id === SETTINGS_ID) {
             if (row.data) { settings.income = row.data.income || 0; settings.expense = row.data.expense || 0; settings.monthKey = row.data.monthKey || ''; settings.monthPaid = row.data.monthPaid || 0; }
           } else {
-            debts.push(row.data ? Object.assign({ id: row.id, sort: row.sort }, row.data) : row);
+            var debt = row.data ? Object.assign({ id: row.id, sort: row.sort }, row.data) : row;
+            debt.log = Array.isArray(debt.log) ? debt.log : [];
+            debt.installments = Array.isArray(debt.installments) ? debt.installments : [];
+            debts.push(debt);
           }
         });
         el('incomeInput').value = settings.income ? settings.income : '';
@@ -524,7 +613,7 @@
 
   function cloudUpsert(d) {
     setSync('sync', '保存中…');
-    var payload = { id: d.id, sort: d.sort, owner: session.user.id, data: { name: d.name, principal: d.principal, balance: d.balance, log: d.log, open: d.open } };
+    var payload = { id: d.id, sort: d.sort, owner: session.user.id, data: { name: d.name, category: d.category || 'other', principal: d.principal, balance: d.balance, log: d.log, open: d.open, installments: d.installments || [], billMeta: d.billMeta || null } };
     return api(TABLE, { method: 'POST', headers: { 'Prefer': 'resolution=merge-duplicates' }, body: JSON.stringify(payload) })
       .then(function (r) { if (!r.ok) throw new Error(r.status); setSync('ok', '已同步'); })
       .catch(function (e) { setSync('err', '保存失败'); console.error(e); });
@@ -549,10 +638,11 @@
   function addDebt() {
     var name = el('newName').value.trim();
     var amt = parseFloat(el('newAmount').value);
+    var category = el('newCategory').value;
     if (!name || isNaN(amt) || amt <= 0) return;
-    var d = { id: uid(), sort: Date.now(), name: name, principal: amt, balance: amt, log: [{ t: 'borrow', amt: amt, date: today(), id: uid() }], open: false };
+    var d = { id: uid(), sort: Date.now(), name: name, category: category, principal: amt, balance: amt, log: [{ t: 'borrow', amt: amt, date: today(), id: uid() }], open: false, installments: [], billMeta: null };
     debts.unshift(d);
-    el('newName').value = ''; el('newAmount').value = '';
+    el('newName').value = ''; el('newAmount').value = ''; el('newCategory').value = 'other';
     render(); cloudUpsert(d);
   }
   function repay(id) {
@@ -584,12 +674,14 @@
     var d = find(id); if (!d) return;
     var name = el('editName_' + id).value.trim();
     var principal = parseFloat(el('editPrincipal_' + id).value);
+    var category = el('editCategory_' + id).value;
     var repaid = d.log.reduce(function (sum, item) { return sum + (item.t === 'repay' ? Number(item.amt) || 0 : 0); }, 0);
     var error = el('editError_' + id);
     if (!name) { error.textContent = '请输入平台或对象名称'; return; }
     if (isNaN(principal) || principal <= 0) { error.textContent = '欠款总额必须大于 0'; return; }
     if (principal < repaid) { error.textContent = '欠款总额不能低于累计已还 ¥' + fmt(repaid); return; }
     d.name = name;
+    d.category = category;
     d.principal = round2(principal);
     d.balance = round2(Math.max(0, d.principal - repaid));
     ui.editingId = null;
@@ -598,6 +690,187 @@
   function removeDebt(id) { debts = debts.filter(function (d) { return d.id !== id; }); if (ui.editingId === id) ui.editingId = null; render(); cloudDelete(id); }
   function toggleHist(id) { var d = find(id); if (d) { d.open = !d.open; render(); cloudUpsert(d); } }
   function find(id) { for (var i = 0; i < debts.length; i++) if (debts[i].id === id) return debts[i]; return null; }
+
+  function openBillPanel(id) { if (!find(id)) return; ui.billPanel[id] = true; delete ui.billDrafts[id]; render(); }
+  function closeBillPanel(id) { delete ui.billPanel[id]; delete ui.billDrafts[id]; delete ui.billUploads[id]; render(); }
+  function toggleBillList(id) { ui.billOpen[id] = !ui.billOpen[id]; render(); }
+
+  function prepareBillImage(file) {
+    return new Promise(function (resolve, reject) {
+      if (!file || !/^image\//.test(file.type)) { reject(new Error('请选择图片文件')); return; }
+      if (file.size > 8 * 1024 * 1024) { reject(new Error('图片不能超过 8MB')); return; }
+      var reader = new FileReader();
+      reader.onerror = function () { reject(new Error('读取图片失败')); };
+      reader.onload = function () {
+        var image = new Image();
+        image.onerror = function () { reject(new Error('图片格式无法识别')); };
+        image.onload = function () {
+          var maxSide = 1600;
+          var scale = Math.min(1, maxSide / Math.max(image.width, image.height));
+          var canvas = document.createElement('canvas');
+          canvas.width = Math.max(1, Math.round(image.width * scale));
+          canvas.height = Math.max(1, Math.round(image.height * scale));
+          var ctx = canvas.getContext('2d');
+          ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+          var dataUrl = canvas.toDataURL('image/jpeg', 0.86);
+          resolve({ preview: dataUrl });
+        };
+        image.src = reader.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function selectBillImage(id, input) {
+    var status = el('billStatus_' + id), button = el('recognizeBill_' + id), preview = el('billPreview_' + id);
+    status.className = 'bill-status'; status.textContent = '正在处理图片…'; button.disabled = true;
+    prepareBillImage(input.files && input.files[0]).then(function (upload) {
+      ui.billUploads[id] = upload;
+      preview.src = upload.preview; preview.classList.add('show');
+      status.textContent = '图片已就绪，识别后请逐项核对金额。'; button.disabled = false;
+    }).catch(function (e) { delete ui.billUploads[id]; status.className = 'bill-status err'; status.textContent = e.message; });
+  }
+
+  function normalizeOcrText(text) {
+    return String(text || '').replace(/[！-～]/g, function (c) { return String.fromCharCode(c.charCodeAt(0) - 0xFEE0); })
+      .replace(/　/g, ' ').replace(/[￥]/g, '¥').replace(/(\d)\s+(?=\d)/g, '$1');
+  }
+
+  function localDateKey(date) {
+    return date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
+  }
+
+  function parseOcrDate(line, warnings) {
+    var full = line.match(/(20\d{2})\s*[年\/\-.]\s*(\d{1,2})\s*[月\/\-.]\s*(\d{1,2})\s*日?/);
+    var year, month, day;
+    if (full) { year = Number(full[1]); month = Number(full[2]); day = Number(full[3]); }
+    else {
+      var shortDate = line.match(/(?:^|\D)(\d{1,2})\s*[月\/\-.]\s*(\d{1,2})\s*日?(?:\D|$)/);
+      if (!shortDate) return '';
+      month = Number(shortDate[1]); day = Number(shortDate[2]);
+      var now = new Date(), candidate = new Date(now.getFullYear(), month - 1, day);
+      if (candidate.getTime() < now.getTime() - 45 * 86400000) candidate.setFullYear(candidate.getFullYear() + 1);
+      year = candidate.getFullYear();
+      if (warnings.indexOf('部分日期没有年份，已按最近的未来日期推算') === -1) warnings.push('部分日期没有年份，已按最近的未来日期推算');
+    }
+    var parsed = new Date(year, month - 1, day);
+    if (parsed.getFullYear() !== year || parsed.getMonth() !== month - 1 || parsed.getDate() !== day) return '';
+    return localDateKey(parsed);
+  }
+
+  function parseOcrAmount(line) {
+    var amountLine = line.replace(/20\d{2}\s*[年\/\-.]\s*\d{1,2}\s*[月\/\-.]\s*\d{1,2}\s*日?/g, ' ')
+      .replace(/(?:^|\D)\d{1,2}\s*[月\/\-.]\s*\d{1,2}\s*日?(?:\D|$)/g, ' ');
+    var patterns = [
+      /(?:¥|RMB|人民币)\s*[:：]?\s*([0-9][0-9,]*(?:\.[0-9]{1,2})?)/i,
+      /(?:应还|还款|本期|每期|金额|合计)\D{0,8}([0-9][0-9,]*(?:\.[0-9]{1,2})?)/,
+      /(?:^|\s)([0-9]{1,7}\.[0-9]{2})(?:\s|元|$)/
+    ];
+    for (var i = 0; i < patterns.length; i++) {
+      var match = amountLine.match(patterns[i]);
+      if (match) { var amount = Number(match[1].replace(/,/g, '')); if (amount > 0) return amount; }
+    }
+    return 0;
+  }
+
+  function parseOcrPeriod(line, fallback) {
+    var match = line.match(/第?\s*(\d{1,2})\s*期/) || line.match(/第?\s*(\d{1,2})\s*\/\s*\d{1,2}\s*期/);
+    return match ? Number(match[1]) + '期' : fallback + '期';
+  }
+
+  function parseBillText(text, platform) {
+    var normalized = normalizeOcrText(text), lines = normalized.split(/\r?\n/).map(function (line) { return line.trim(); }).filter(Boolean);
+    var warnings = [], installments = [], usedAmountLines = {};
+    lines.forEach(function (line, index) {
+      var dueDate = parseOcrDate(line, warnings); if (!dueDate) return;
+      var amount = parseOcrAmount(line), amountLine = index;
+      if (!amount) {
+        for (var offset = -2; offset <= 3; offset++) {
+          var nearby = index + offset;
+          if (!offset || nearby < 0 || nearby >= lines.length || usedAmountLines[nearby]) continue;
+          amount = parseOcrAmount(lines[nearby]);
+          if (amount) { amountLine = nearby; break; }
+        }
+      }
+      if (amount) usedAmountLines[amountLine] = true;
+      installments.push({ period: parseOcrPeriod(line, installments.length + 1), due_date: dueDate, amount: amount || '', note: '' });
+    });
+    if (!installments.length) {
+      lines.forEach(function (line, index) {
+        var amount = parseOcrAmount(line); if (!amount || usedAmountLines[index]) return;
+        installments.push({ period: parseOcrPeriod(line, installments.length + 1), due_date: '', amount: amount, note: '' });
+      });
+    }
+    if (!installments.length) installments.push({ period: '1期', due_date: '', amount: '', note: '' });
+    if (installments.some(function (item) { return !item.due_date || !item.amount; })) warnings.push('有些日期或金额无法自动确定，请根据原图补充');
+    return { platform: platform || '', currency: 'CNY', warnings: warnings, rawText: normalized.trim(), installments: installments.slice(0, 60) };
+  }
+
+  function ocrProgressText(message) {
+    var labels = { 'loading tesseract core': '加载识别引擎', 'initializing tesseract': '初始化识别引擎', 'loading language traineddata': '下载中文语言包', 'initializing api': '初始化中文识别', 'recognizing text': '识别文字' };
+    var label = labels[message.status] || '本地识别';
+    return label + (typeof message.progress === 'number' ? ' ' + Math.round(message.progress * 100) + '%' : '…');
+  }
+
+  function recognizeBill(id) {
+    var upload = ui.billUploads[id], status = el('billStatus_' + id), button = el('recognizeBill_' + id), debt = find(id), worker = null;
+    if (!upload) { status.className = 'bill-status err'; status.textContent = '请先选择账单截图'; return; }
+    if (!window.Tesseract) { status.className = 'bill-status err'; status.textContent = '本地识别组件加载失败，请检查网络后刷新页面'; return; }
+    button.disabled = true; button.textContent = '识别中…'; status.className = 'bill-status'; status.textContent = '首次使用需要下载中文语言包，请稍候…';
+    window.Tesseract.createWorker(['chi_sim', 'eng'], 1, { logger: function (message) { var current = el('billStatus_' + id); if (current) current.textContent = ocrProgressText(message); } })
+      .then(function (createdWorker) { worker = createdWorker; return worker.recognize(upload.preview); })
+      .then(function (result) {
+        ui.billDrafts[id] = parseBillText(result.data.text, debt ? debt.name : '');
+        delete ui.billUploads[id];
+        return worker.terminate();
+      })
+      .then(function () { render(); })
+      .catch(function (e) {
+        if (worker) worker.terminate().catch(function () {});
+        button.disabled = false; button.textContent = '开始识别'; status.className = 'bill-status err'; status.textContent = '本地识别失败：' + e.message;
+      });
+  }
+
+  function syncBillDraftInputs(id) {
+    var draft = ui.billDrafts[id]; if (!draft) return null;
+    var platform = el('billPlatform_' + id), currency = el('billCurrency_' + id);
+    if (platform) draft.platform = platform.value.trim();
+    if (currency) draft.currency = currency.value.trim() || 'CNY';
+    draft.installments.forEach(function (item, index) {
+      var period = el('billPeriod_' + id + '_' + index); if (!period) return;
+      item.period = period.value.trim(); item.due_date = el('billDate_' + id + '_' + index).value;
+      item.amount = el('billAmount_' + id + '_' + index).value; item.note = el('billNote_' + id + '_' + index).value.trim();
+    });
+    return draft;
+  }
+
+  function addBillRow(id) { var draft = syncBillDraftInputs(id); if (!draft) return; draft.installments.push({ period: (draft.installments.length + 1) + '期', due_date: '', amount: '', note: '' }); render(); }
+  function removeBillRow(id, index) { var draft = syncBillDraftInputs(id); if (!draft) return; draft.installments.splice(index, 1); render(); }
+  function editBillSchedule(id) {
+    var d = find(id); if (!d) return;
+    ui.billPanel[id] = true;
+    ui.billDrafts[id] = { platform: (d.billMeta && d.billMeta.platform) || d.name, currency: (d.billMeta && d.billMeta.currency) || 'CNY', warnings: [], installments: (d.installments || []).map(function (item) { return Object.assign({}, item); }) };
+    render();
+  }
+  function saveBillDraft(id) {
+    var d = find(id), draft = syncBillDraftInputs(id); if (!d || !draft) return;
+    var error = el('billDraftError_' + id), saved = [];
+    for (var i = 0; i < draft.installments.length; i++) {
+      var item = draft.installments[i], amount = parseFloat(item.amount);
+      if (!item.due_date || isNaN(amount) || amount <= 0) { error.textContent = '请检查第 ' + (i + 1) + ' 期的日期和金额'; return; }
+      saved.push({ period: item.period || (i + 1) + '期', due_date: item.due_date, amount: round2(amount), note: item.note || '' });
+    }
+    if (!saved.length) { error.textContent = '至少需要一条分期记录'; return; }
+    d.installments = saved;
+    d.billMeta = { platform: draft.platform || d.name, currency: draft.currency || 'CNY', recognizedAt: new Date().toISOString() };
+    delete ui.billPanel[id]; delete ui.billDrafts[id]; ui.billOpen[id] = true;
+    render(); cloudUpsert(d);
+  }
+  function deleteBillSchedule(id) {
+    var d = find(id); if (!d || !confirm('确定删除这笔债务的分期账单吗？')) return;
+    d.installments = []; d.billMeta = null; delete ui.billOpen[id]; render(); cloudUpsert(d);
+  }
 
   function round2(n) { return Math.round((n + Number.EPSILON) * 100) / 100; }
   function curMonthKey() { var d = new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1); }
@@ -681,6 +954,53 @@
     return arr;
   }
 
+  function renderBillSection(d) {
+    var items = Array.isArray(d.installments) ? d.installments : [];
+    var html = '';
+    if (items.length) {
+      var sorted = items.slice().sort(function (a, b) { return String(a.due_date).localeCompare(String(b.due_date)); });
+      var todayKey = new Date().toISOString().slice(0, 10);
+      var next = null;
+      for (var i = 0; i < sorted.length; i++) { if (sorted[i].due_date >= todayKey) { next = sorted[i]; break; } }
+      if (!next) next = sorted[sorted.length - 1];
+      var total = items.reduce(function (sum, item) { return sum + (Number(item.amount) || 0); }, 0);
+      html += '<div class="bill-summary"><div class="bill-summary-main"><span class="bill-summary-title">预计分期 · ' + items.length + ' 期</span><span class="bill-summary-amount">¥' + fmt(total) + '</span></div>';
+      html += '<div class="bill-summary-sub">' + (next ? '参考一期：' + esc(next.due_date) + ' · ¥' + fmt(next.amount) : '暂无分期日期') + '。金额来自截图识别，请以平台实际账单为准。</div>';
+      html += '<div class="bill-list-actions"><button class="btn-mini" data-act="toggle-bill" data-id="' + d.id + '">' + (ui.billOpen[d.id] ? '收起分期' : '查看分期') + '</button>';
+      html += '<button class="btn-mini btn-edit" data-act="edit-bill" data-id="' + d.id + '">修改账单</button><button class="btn-mini btn-del" data-act="delete-bill" data-id="' + d.id + '">删除账单</button></div>';
+      if (ui.billOpen[d.id]) {
+        html += '<div class="bill-list">';
+        sorted.forEach(function (item) { html += '<div class="bill-item"><span>' + esc(item.period) + '</span><span>' + esc(item.due_date) + (item.note ? ' · ' + esc(item.note) : '') + '</span><span class="amt">¥' + fmt(item.amount) + '</span></div>'; });
+        html += '</div>';
+      }
+      html += '</div>';
+    }
+    if (!ui.billPanel[d.id]) return html;
+    var draft = ui.billDrafts[d.id];
+    html += '<div class="bill-panel"><div class="bill-panel-head"><span class="bill-panel-title">' + (draft ? '核对分期账单' : '识别账单截图') + '</span><button class="btn-mini" data-act="close-bill" data-id="' + d.id + '">关闭</button></div>';
+    if (!draft) {
+      html += '<div class="bill-panel-note">选择网贷平台的分期账单截图。图片会先压缩，再由浏览器本地 OCR 识别，不会上传；识别结果也不会自动保存。</div><div class="bill-upload">';
+      html += '<input class="bill-file" id="billFile_' + d.id + '" data-bill-file="' + d.id + '" type="file" accept="image/*">';
+      html += '<img class="bill-preview" id="billPreview_' + d.id + '" alt="账单截图预览"><div class="bill-status" id="billStatus_' + d.id + '">支持 JPG、PNG 等图片，最大 8MB。</div>';
+      html += '<button class="btn-mini btn-scan" id="recognizeBill_' + d.id + '" data-act="recognize-bill" data-id="' + d.id + '" disabled>开始识别</button></div>';
+    } else {
+      html += '<div class="bill-panel-note">请逐项核对期数、日期和金额。只有点击“确认保存”后，数据才会写入云端。</div><div class="bill-editor">';
+      html += '<div class="bill-editor-meta"><input id="billPlatform_' + d.id + '" value="' + esc(draft.platform || d.name) + '" placeholder="平台名称"><input id="billCurrency_' + d.id + '" value="' + esc(draft.currency || 'CNY') + '" placeholder="币种"></div>';
+      if (draft.warnings && draft.warnings.length) html += '<div class="bill-warnings">识别提醒：' + draft.warnings.map(esc).join('；') + '</div>';
+      if (draft.rawText) html += '<details class="bill-panel-note"><summary>查看本地识别原文</summary><div style="white-space:pre-wrap;margin-top:6px;">' + esc(draft.rawText) + '</div></details>';
+      html += '<div class="bill-row bill-row-head"><span>期数</span><span>还款日期</span><span>金额</span><span>备注</span><span></span></div>';
+      draft.installments.forEach(function (item, index) {
+        html += '<div class="bill-row"><input id="billPeriod_' + d.id + '_' + index + '" value="' + esc(item.period) + '" placeholder="第 ' + (index + 1) + ' 期">';
+        html += '<input id="billDate_' + d.id + '_' + index + '" type="date" value="' + esc(item.due_date) + '"><input id="billAmount_' + d.id + '_' + index + '" type="number" min="0" step="0.01" inputmode="decimal" value="' + esc(item.amount) + '" placeholder="金额">';
+        html += '<input id="billNote_' + d.id + '_' + index + '" value="' + esc(item.note) + '" placeholder="备注"><button class="bill-remove-row" data-act="remove-bill-row" data-id="' + d.id + '" data-index="' + index + '" title="删除此期">×</button></div>';
+      });
+      html += '<div class="edit-error" id="billDraftError_' + d.id + '"></div><div class="bill-editor-actions"><button class="btn-mini" data-act="add-bill-row" data-id="' + d.id + '">+ 增加一期</button>';
+      html += '<button class="btn-mini btn-save" data-act="save-bill" data-id="' + d.id + '">确认保存</button></div></div>';
+    }
+    html += '</div>';
+    return html;
+  }
+
   function render() {
     var totalOwed = 0, totalRepaid = 0, cleared = 0;
     debts.forEach(function (d) { totalOwed += d.balance; d.log.forEach(function (l) { if (l.t === 'repay') totalRepaid += l.amt; }); if (d.balance <= 0) cleared++; });
@@ -711,7 +1031,7 @@
       var repaidTotal = d.principal - d.balance;
       var pct = d.principal > 0 ? Math.min(100, (repaidTotal / d.principal) * 100) : 0;
       html += '<div class="card' + (isC ? ' cleared' : '') + '"><div class="card-top">';
-      html += '<div class="card-name">' + esc(d.name) + (isC ? '<span class="badge">已结清</span>' : '') + '</div>';
+      html += '<div class="card-name">' + esc(d.name) + (d.category ? '<span class="badge category">' + categoryLabel(d.category) + '</span>' : '') + (isC ? '<span class="badge">已结清</span>' : '') + '</div>';
       html += '<div class="card-owe"><div class="owe-amount' + (isC ? ' cleared' : '') + '"><span class="sym">¥</span>' + fmt(d.balance) + '</div><div class="owe-sub">未还余额</div></div></div>';
       html += '<div class="progress"><div class="progress-track"><div class="progress-fill" style="width:' + pct + '%"></div></div>';
       html += '<div class="progress-meta"><span>本金 ¥' + fmt(d.principal) + '</span><span class="repaid">已还 ¥' + fmt(repaidTotal) + ' · ' + pct.toFixed(0) + '%</span></div></div>';
@@ -719,18 +1039,21 @@
       html += '<input class="mini-input" type="number" id="inp_' + d.id + '" placeholder="金额" min="0" step="0.01" inputmode="decimal">';
       html += '<button class="btn-mini btn-repay" data-act="repay" data-id="' + d.id + '">− 还款</button>';
       html += '<button class="btn-mini btn-borrow" data-act="borrow" data-id="' + d.id + '">+ 加借</button>';
+      if (d.category === 'online_loan') html += '<button class="btn-mini btn-scan" data-act="open-bill" data-id="' + d.id + '">识别账单</button>';
       html += '<button class="btn-mini btn-edit" data-act="edit" data-id="' + d.id + '">修改</button>';
       html += '<button class="btn-mini btn-del" data-act="del" data-id="' + d.id + '">删除</button></div>';
       if (ui.editingId === d.id) {
         var repaidForEdit = d.log.reduce(function (sum, item) { return sum + (item.t === 'repay' ? Number(item.amt) || 0 : 0); }, 0);
         html += '<div class="edit-panel"><div class="edit-grid">';
         html += '<div class="edit-field"><label>平台 / 对象</label><input id="editName_' + d.id + '" data-edit-id="' + d.id + '" value="' + esc(d.name) + '"></div>';
+        html += '<div class="edit-field"><label>债务类目</label><select id="editCategory_' + d.id + '" data-edit-id="' + d.id + '">' + categoryOptions(d.category || 'other') + '</select></div>';
         html += '<div class="edit-field"><label>欠款总额</label><input id="editPrincipal_' + d.id + '" data-edit-id="' + d.id + '" type="number" min="' + repaidForEdit + '" step="0.01" inputmode="decimal" value="' + d.principal + '"></div>';
         html += '</div><div class="edit-note">累计已还 ¥' + fmt(repaidForEdit) + ' 会保留，修改总额后自动重算未还余额。</div>';
         html += '<div class="edit-error" id="editError_' + d.id + '"></div><div class="edit-actions">';
         html += '<button class="btn-mini" data-act="cancel-edit" data-id="' + d.id + '">取消</button>';
         html += '<button class="btn-mini btn-save" data-act="save-edit" data-id="' + d.id + '">保存修改</button></div></div>';
       }
+      html += renderBillSection(d);
       html += '<div class="card-foot">';
       if (d.log.length > 0) {
         html += '<div class="history-toggle" data-act="toggle" data-id="' + d.id + '">' + (d.open ? '▾ 收起记录' : '▸ 查看记录') + ' (' + d.log.length + ')</div>';
@@ -753,6 +1076,8 @@
   // ---------- 事件 ----------
   el('tabLogin').addEventListener('click', function () { switchMode('login'); });
   el('tabSignup').addEventListener('click', function () { switchMode('signup'); });
+  el('togglePassBtn').addEventListener('click', function () { setPasswordVisible(el('authPass').type === 'password'); });
+  el('rememberPass').addEventListener('change', function () { if (!this.checked) { try { localStorage.removeItem(REMEMBER_KEY); } catch (e) {} } });
   el('accountBtn').addEventListener('click', function (e) { e.stopPropagation(); setAccountMenu(!el('accountMenu').classList.contains('open')); });
   el('accountMenu').addEventListener('click', function (e) { e.stopPropagation(); });
   document.addEventListener('click', function () { setAccountMenu(false); });
@@ -781,8 +1106,14 @@
     if (act === 'repay') repay(id); else if (act === 'borrow') borrowMore(id);
     else if (act === 'edit') startEdit(id); else if (act === 'save-edit') saveEdit(id);
     else if (act === 'cancel-edit') cancelEdit(); else if (act === 'del') removeDebt(id);
-    else if (act === 'toggle') toggleHist(id);
+    else if (act === 'toggle') toggleHist(id); else if (act === 'open-bill') openBillPanel(id);
+    else if (act === 'close-bill') closeBillPanel(id); else if (act === 'recognize-bill') recognizeBill(id);
+    else if (act === 'toggle-bill') toggleBillList(id); else if (act === 'edit-bill') editBillSchedule(id);
+    else if (act === 'save-bill') saveBillDraft(id); else if (act === 'delete-bill') deleteBillSchedule(id);
+    else if (act === 'add-bill-row') addBillRow(id);
+    else if (act === 'remove-bill-row') removeBillRow(id, parseInt(btn.getAttribute('data-index'), 10));
   });
+  el('list').addEventListener('change', function (e) { var id = e.target.getAttribute('data-bill-file'); if (id) selectBillImage(id, e.target); });
   el('list').addEventListener('keydown', function (e) {
     var input = e.target.closest('[data-edit-id]');
     if (input && e.key === 'Enter') saveEdit(input.getAttribute('data-edit-id'));
@@ -799,6 +1130,7 @@
 
   // ---------- 启动 ----------
   if (!configured) { el('configBanner').classList.remove('hidden'); setSync('err', '未配置'); }
+  loadRememberedLogin();
   restoreSession();
 </script>
 </body>
