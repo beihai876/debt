@@ -1,4 +1,0 @@
-project_id = "iqxafcpciutvudqbgozd"
-
-[functions.recognize-bill]
-verify_jwt = true
