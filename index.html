@@ -376,7 +376,6 @@
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@7.0.0/dist/tesseract.min.js"></script>
 <script>
   // ============================================================
   //  ↓↓↓ 只需修改下面这两行 ↓↓↓
@@ -388,6 +387,11 @@
   var TABLE = "debts";
   var SETTINGS_ID = "__settings__";
   var REMEMBER_KEY = "debt_remembered_login";
+  var TESSERACT_URLS = [
+    "https://cdn.jsdelivr.net/npm/tesseract.js@7.0.0/dist/tesseract.min.js",
+    "https://unpkg.com/tesseract.js@7.0.0/dist/tesseract.min.js"
+  ];
+  var tesseractLoadPromise = null;
   var configured = SUPABASE_URL.indexOf("supabase.co") !== -1 && SUPABASE_KEY.indexOf("eyJ") === 0;
   var session = null;
   var debts = [];
@@ -695,6 +699,12 @@
   function openBillPanel(id) { if (!find(id)) return; ui.billPanel[id] = true; delete ui.billDrafts[id]; render(); }
   function closeBillPanel(id) { delete ui.billPanel[id]; delete ui.billDrafts[id]; delete ui.billUploads[id]; render(); }
   function toggleBillList(id) { ui.billOpen[id] = !ui.billOpen[id]; render(); }
+  function manualBillDraft(id) {
+    var d = find(id); if (!d) return;
+    delete ui.billUploads[id];
+    ui.billDrafts[id] = { platform: d.name || '', currency: 'CNY', warnings: [], rawText: '', installments: [{ period: '1期', due_date: '', amount: '', note: '' }] };
+    render();
+  }
 
   function prepareBillImage(file) {
     return new Promise(function (resolve, reject) {
@@ -814,12 +824,54 @@
     return label + (typeof message.progress === 'number' ? ' ' + Math.round(message.progress * 100) + '%' : '…');
   }
 
+  function loadTesseract(statusEl) {
+    if (window.Tesseract) return Promise.resolve(window.Tesseract);
+    if (tesseractLoadPromise) return tesseractLoadPromise;
+    var index = 0;
+    tesseractLoadPromise = new Promise(function (resolve, reject) {
+      function tryNextSource() {
+        if (window.Tesseract) { resolve(window.Tesseract); return; }
+        if (index >= TESSERACT_URLS.length) {
+          tesseractLoadPromise = null;
+          reject(new Error('识别组件加载失败，页面其他功能不受影响。请换个网络后再试，或先手动填写分期。'));
+          return;
+        }
+        var script = document.createElement('script');
+        var source = TESSERACT_URLS[index++];
+        if (statusEl) statusEl.textContent = '正在加载本地识别组件…';
+        script.src = source;
+        script.async = true;
+        var timer = setTimeout(function () {
+          script.onload = null; script.onerror = null;
+          if (script.parentNode) script.parentNode.removeChild(script);
+          tryNextSource();
+        }, 15000);
+        script.onload = function () {
+          clearTimeout(timer);
+          if (window.Tesseract) resolve(window.Tesseract);
+          else tryNextSource();
+        };
+        script.onerror = function () {
+          clearTimeout(timer);
+          if (script.parentNode) script.parentNode.removeChild(script);
+          tryNextSource();
+        };
+        document.head.appendChild(script);
+      }
+      tryNextSource();
+    });
+    return tesseractLoadPromise;
+  }
+
   function recognizeBill(id) {
     var upload = ui.billUploads[id], status = el('billStatus_' + id), button = el('recognizeBill_' + id), debt = find(id), worker = null;
     if (!upload) { status.className = 'bill-status err'; status.textContent = '请先选择账单截图'; return; }
-    if (!window.Tesseract) { status.className = 'bill-status err'; status.textContent = '本地识别组件加载失败，请检查网络后刷新页面'; return; }
-    button.disabled = true; button.textContent = '识别中…'; status.className = 'bill-status'; status.textContent = '首次使用需要下载中文语言包，请稍候…';
-    window.Tesseract.createWorker(['chi_sim', 'eng'], 1, { logger: function (message) { var current = el('billStatus_' + id); if (current) current.textContent = ocrProgressText(message); } })
+    button.disabled = true; button.textContent = '准备识别…'; status.className = 'bill-status'; status.textContent = '正在准备本地识别组件…';
+    loadTesseract(status)
+      .then(function (Tesseract) {
+        button.textContent = '识别中…'; status.textContent = '首次使用需要下载中文语言包，请稍候…';
+        return Tesseract.createWorker(['chi_sim', 'eng'], 1, { logger: function (message) { var current = el('billStatus_' + id); if (current) current.textContent = ocrProgressText(message); } });
+      })
       .then(function (createdWorker) { worker = createdWorker; return worker.recognize(upload.preview); })
       .then(function (result) {
         ui.billDrafts[id] = parseBillText(result.data.text, debt ? debt.name : '');
@@ -984,7 +1036,8 @@
       html += '<div class="bill-panel-note">选择网贷平台的分期账单截图。图片会先压缩，再由浏览器本地 OCR 识别，不会上传；确认保存后，这笔债务会自动归类为“网贷”。</div><div class="bill-upload">';
       html += '<label class="btn-mini btn-scan bill-file-label">选择照片 / 拍照<input class="bill-file" id="billFile_' + d.id + '" data-bill-file="' + d.id + '" type="file" accept="image/*"></label>';
       html += '<img class="bill-preview" id="billPreview_' + d.id + '" alt="账单截图预览"><div class="bill-status" id="billStatus_' + d.id + '">支持 JPG、PNG 等图片，最大 8MB。</div>';
-      html += '<button class="btn-mini btn-scan" id="recognizeBill_' + d.id + '" data-act="recognize-bill" data-id="' + d.id + '" disabled>开始识别</button></div>';
+      html += '<button class="btn-mini btn-scan" id="recognizeBill_' + d.id + '" data-act="recognize-bill" data-id="' + d.id + '" disabled>开始识别</button>';
+      html += '<button class="btn-mini" data-act="manual-bill" data-id="' + d.id + '">手动填写</button></div>';
     } else {
       html += '<div class="bill-panel-note">请逐项核对期数、日期和金额。只有点击“确认保存”后，数据才会写入云端。</div><div class="bill-editor">';
       html += '<div class="bill-editor-meta"><input id="billPlatform_' + d.id + '" value="' + esc(draft.platform || d.name) + '" placeholder="平台名称"><input id="billCurrency_' + d.id + '" value="' + esc(draft.currency || 'CNY') + '" placeholder="币种"></div>';
@@ -1110,6 +1163,7 @@
     else if (act === 'cancel-edit') cancelEdit(); else if (act === 'del') removeDebt(id);
     else if (act === 'toggle') toggleHist(id); else if (act === 'open-bill') openBillPanel(id);
     else if (act === 'close-bill') closeBillPanel(id); else if (act === 'recognize-bill') recognizeBill(id);
+    else if (act === 'manual-bill') manualBillDraft(id);
     else if (act === 'toggle-bill') toggleBillList(id); else if (act === 'edit-bill') editBillSchedule(id);
     else if (act === 'save-bill') saveBillDraft(id); else if (act === 'delete-bill') deleteBillSchedule(id);
     else if (act === 'add-bill-row') addBillRow(id);
