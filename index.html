@@ -52,6 +52,8 @@
   .auth-btn { width: 100%; font-family: inherit; font-size: 15px; font-weight: 600; padding: 12px; border: none; border-radius: 2px; background: var(--ink); color: var(--paper); cursor: pointer; margin-top: 4px; transition: background 0.15s; }
   .auth-btn:hover { background: #000; }
   .auth-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .auth-local-btn { background: transparent; color: var(--ink); border: 1px solid var(--line); margin-top: 10px; }
+  .auth-local-btn:hover { background: var(--line-soft); }
   .auth-msg { font-size: 13px; margin-top: 14px; padding: 10px 12px; border-radius: 2px; line-height: 1.5; display: none; }
   .auth-msg.err { display: block; background: #fdeee7; color: var(--rust-deep); border: 1px solid var(--rust); }
   .auth-msg.ok { display: block; background: rgba(90,107,63,0.12); color: var(--moss-deep); border: 1px solid var(--moss); }
@@ -291,6 +293,7 @@
       </div>
       <label class="remember-row" id="rememberRow"><input id="rememberPass" type="checkbox"><span>记住密码</span><span class="remember-note">仅限私人设备</span></label>
       <button class="auth-btn" id="authBtn">登录</button>
+      <button class="auth-btn auth-local-btn" id="localAuthBtn" type="button">本地模式</button>
       <div class="auth-msg" id="authMsg"></div>
       <div class="auth-hint" id="authHint">用邮箱和密码登录，只能看到自己的债务记录。<br>第一次用请先点上方「注册」。</div>
     </div>
@@ -387,6 +390,9 @@
   var TABLE = "debts";
   var SETTINGS_ID = "__settings__";
   var REMEMBER_KEY = "debt_remembered_login";
+  var SESSION_KEY = "debt_session";
+  var LOCAL_USERS_KEY = "debt_local_users_v1";
+  var LOCAL_DATA_PREFIX = "debt_local_data_v1:";
   var TESSERACT_URLS = [
     "https://cdn.jsdelivr.net/npm/tesseract.js@7.0.0/dist/tesseract.min.js",
     "https://unpkg.com/tesseract.js@7.0.0/dist/tesseract.min.js"
@@ -394,6 +400,7 @@
   var tesseractLoadPromise = null;
   var configured = SUPABASE_URL.indexOf("supabase.co") !== -1 && SUPABASE_KEY.indexOf("eyJ") === 0;
   var session = null;
+  var localMode = false;
   var debts = [];
   var settings = { income: 0, expense: 0, monthKey: "", monthPaid: 0 };
   var authMode = "login";
@@ -421,10 +428,37 @@
     else h['Authorization'] = 'Bearer ' + SUPABASE_KEY;
     return h;
   }
-  function saveSession() { try { localStorage.setItem('debt_session', JSON.stringify(session)); } catch (e) {} }
-  function loadSession() { try { var r = localStorage.getItem('debt_session'); session = r ? JSON.parse(r) : null; } catch (e) { session = null; } }
-  function clearSession() { session = null; try { localStorage.removeItem('debt_session'); } catch (e) {} }
+  function isLocalMode() { return !!(session && session.backend === 'local'); }
+  function saveSession() { try { localStorage.setItem(SESSION_KEY, JSON.stringify(session)); } catch (e) {} }
+  function loadSession() { try { var r = localStorage.getItem(SESSION_KEY); session = r ? JSON.parse(r) : null; localMode = isLocalMode(); } catch (e) { session = null; localMode = false; } }
+  function clearSession() { session = null; localMode = false; try { localStorage.removeItem(SESSION_KEY); } catch (e) {} }
   function showAuthMsg(text, type) { var m = el('authMsg'); m.textContent = text; m.className = 'auth-msg ' + type; }
+
+  function normalizeEmail(email) { return String(email || '').trim().toLowerCase(); }
+  function localUsers() { try { return JSON.parse(localStorage.getItem(LOCAL_USERS_KEY) || '{}') || {}; } catch (e) { return {}; } }
+  function saveLocalUsers(users) { try { localStorage.setItem(LOCAL_USERS_KEY, JSON.stringify(users)); } catch (e) {} }
+  function hashPassword(email, password) {
+    var text = normalizeEmail(email) + '\n' + password;
+    if (window.crypto && window.crypto.subtle && window.TextEncoder) {
+      return crypto.subtle.digest('SHA-256', new TextEncoder().encode(text)).then(function (buffer) {
+        return Array.prototype.map.call(new Uint8Array(buffer), function (b) { return b.toString(16).padStart(2, '0'); }).join('');
+      });
+    }
+    return Promise.resolve('fallback:' + btoa(unescape(encodeURIComponent(text))));
+  }
+  function enterLocalApp(email) {
+    var normalized = normalizeEmail(email);
+    session = {
+      backend: 'local',
+      access_token: 'local',
+      refresh_token: '',
+      expires_at: Math.floor(Date.now() / 1000) + 315360000,
+      user: { id: 'local:' + normalized, email: normalized + '（本地）' }
+    };
+    localMode = true;
+    saveSession();
+    enterApp();
+  }
 
   function setPasswordVisible(visible) {
     el('authPass').type = visible ? 'text' : 'password';
@@ -467,11 +501,13 @@
   function applyAuthSession(d) {
     if (!d || !d.access_token || !d.user) return false;
     session = {
+      backend: 'supabase',
       access_token: d.access_token,
       refresh_token: d.refresh_token || (session && session.refresh_token) || '',
       expires_at: d.expires_at || Math.floor(Date.now() / 1000) + (d.expires_in || 3600),
       user: { id: d.user.id, email: d.user.email }
     };
+    localMode = false;
     saveSession();
     return true;
   }
@@ -507,6 +543,7 @@
   function restoreSession() {
     loadSession();
     if (!session || !session.access_token) { setSync('', '未登录'); return; }
+    if (isLocalMode()) { enterApp(); return; }
     if (!tokenExpiresSoon()) { enterApp(); return; }
     setSync('sync', '恢复登录中…');
     refreshSession().then(function (ok) {
@@ -551,7 +588,39 @@
         enterApp();
       } else { showAuthMsg('登录异常，请重试', 'err'); }
     })
-    .catch(function (e) { el('authBtn').disabled = false; el('authBtn').textContent = authMode === 'login' ? '登录' : '注册'; showAuthMsg('网络错误：' + e.message, 'err'); });
+    .catch(function (e) {
+      el('authBtn').disabled = false;
+      el('authBtn').textContent = authMode === 'login' ? '登录' : '注册';
+      showAuthMsg('云端登录连接失败：当前 Supabase 项目域名不可用。可以点“本地模式”先继续记账。', 'err');
+      console.error(e);
+    });
+  }
+
+  function doLocalAuth() {
+    var email = normalizeEmail(el('authEmail').value);
+    var pass = el('authPass').value;
+    if (!email || !pass) { showAuthMsg('请填写邮箱和密码，本地模式也会按账号隔离数据', 'err'); return; }
+    if (pass.length < 6) { showAuthMsg('密码至少 6 位', 'err'); return; }
+    el('localAuthBtn').disabled = true;
+    el('localAuthBtn').textContent = '进入本地模式…';
+    hashPassword(email, pass).then(function (hash) {
+      var users = localUsers();
+      if (users[email] && users[email].hash !== hash) {
+        showAuthMsg('本地账号密码错误。如果这是第一次本地使用，请换一个邮箱或清除本机旧本地账号。', 'err');
+        return;
+      }
+      if (!users[email]) {
+        users[email] = { hash: hash, createdAt: new Date().toISOString() };
+        saveLocalUsers(users);
+      }
+      updateRememberedLogin(email, pass);
+      enterLocalApp(email);
+    }).catch(function (e) {
+      showAuthMsg('本地模式启动失败：' + e.message, 'err');
+    }).then(function () {
+      el('localAuthBtn').disabled = false;
+      el('localAuthBtn').textContent = '本地模式';
+    });
   }
 
   function switchMode(mode) {
@@ -562,8 +631,8 @@
     el('authPass').setAttribute('autocomplete', mode === 'login' ? 'current-password' : 'new-password');
     el('rememberRow').classList.toggle('hidden', mode !== 'login');
     el('authHint').innerHTML = mode === 'login'
-      ? '用邮箱和密码登录，只能看到自己的债务记录。<br>第一次用请先点上方「注册」。'
-      : '注册一个新账号。和朋友各自注册，数据互不可见。';
+      ? '优先登录云端账号；云端不可用时点「本地模式」，数据保存在当前浏览器。<br>第一次用云端请先点上方「注册」。'
+      : '注册一个云端新账号。只想本机使用时，直接填邮箱密码后点「本地模式」。';
     el('authMsg').className = 'auth-msg';
   }
 
@@ -580,6 +649,62 @@
   }
 
   // ---------- 数据读写 ----------
+  function localDataKey() { return LOCAL_DATA_PREFIX + (session && session.user ? session.user.id : 'guest'); }
+  function cleanDebt(d) {
+    return {
+      id: d.id,
+      sort: d.sort || 0,
+      name: d.name || '',
+      category: d.category || 'other',
+      principal: Number(d.principal) || 0,
+      balance: Number(d.balance) || 0,
+      log: Array.isArray(d.log) ? d.log : [],
+      open: !!d.open,
+      installments: Array.isArray(d.installments) ? d.installments : [],
+      billMeta: d.billMeta || null
+    };
+  }
+  function localSaveData(label) {
+    if (!isLocalMode()) return Promise.resolve();
+    try {
+      localStorage.setItem(localDataKey(), JSON.stringify({
+        settings: {
+          income: settings.income || 0,
+          expense: settings.expense || 0,
+          monthKey: settings.monthKey || '',
+          monthPaid: settings.monthPaid || 0
+        },
+        debts: debts.map(cleanDebt),
+        updatedAt: new Date().toISOString()
+      }));
+      setSync('ok', label || '本地已保存');
+    } catch (e) {
+      setSync('err', '本地保存失败');
+      console.error(e);
+    }
+    return Promise.resolve();
+  }
+  function localLoadData() {
+    try {
+      var raw = localStorage.getItem(localDataKey());
+      var data = raw ? JSON.parse(raw) : {};
+      settings = Object.assign({ income: 0, expense: 0, monthKey: '', monthPaid: 0 }, data.settings || {});
+      debts = Array.isArray(data.debts) ? data.debts.map(cleanDebt) : [];
+      el('incomeInput').value = settings.income ? settings.income : '';
+      el('expenseInput').value = settings.expense ? settings.expense : '';
+      el('dailyInput').value = settings.expense ? Math.round((settings.expense / 30) * 100) / 100 : '';
+      var didReset = ensureMonth();
+      setSync('ok', '本地模式');
+      render();
+      if (didReset) localSaveData('本地已保存');
+    } catch (e) {
+      settings = { income: 0, expense: 0, monthKey: '', monthPaid: 0 };
+      debts = [];
+      setSync('err', '本地读取失败');
+      console.error(e);
+      render();
+    }
+  }
   function api(path, opts, retried) {
     opts = opts || {};
     var requestOpts = Object.assign({}, opts, { headers: Object.assign(authHeaders(), opts.headers || {}) });
@@ -590,6 +715,7 @@
   }
 
   function cloudLoad() {
+    if (isLocalMode()) { localLoadData(); return; }
     setSync('sync', '同步中…');
     api(TABLE + '?select=*&order=sort.desc', { method: 'GET' })
       .then(function (r) { if (r.status === 401) { throw { auth: true }; } if (!r.ok) throw new Error(r.status); return r.json(); })
@@ -617,6 +743,7 @@
   }
 
   function cloudUpsert(d) {
+    if (isLocalMode()) return localSaveData('本地已保存');
     setSync('sync', '保存中…');
     var payload = { id: d.id, sort: d.sort, owner: session.user.id, data: { name: d.name, category: d.category || 'other', principal: d.principal, balance: d.balance, log: d.log, open: d.open, installments: d.installments || [], billMeta: d.billMeta || null } };
     return api(TABLE, { method: 'POST', headers: { 'Prefer': 'resolution=merge-duplicates' }, body: JSON.stringify(payload) })
@@ -625,6 +752,7 @@
   }
 
   function cloudSaveSettings() {
+    if (isLocalMode()) return localSaveData('本地已保存');
     setSync('sync', '保存中…');
     var payload = { id: SETTINGS_ID, sort: 0, owner: session.user.id, data: { income: settings.income, expense: settings.expense, monthKey: settings.monthKey, monthPaid: settings.monthPaid } };
     return api(TABLE, { method: 'POST', headers: { 'Prefer': 'resolution=merge-duplicates' }, body: JSON.stringify(payload) })
@@ -633,6 +761,7 @@
   }
 
   function cloudDelete(id) {
+    if (isLocalMode()) return localSaveData('本地已保存');
     setSync('sync', '删除中…');
     return api(TABLE + '?id=eq.' + encodeURIComponent(id), { method: 'DELETE' })
       .then(function (r) { if (!r.ok) throw new Error(r.status); setSync('ok', '已同步'); })
@@ -1137,6 +1266,7 @@
   el('accountMenu').addEventListener('click', function (e) { e.stopPropagation(); });
   document.addEventListener('click', function () { setAccountMenu(false); });
   el('authBtn').addEventListener('click', doAuth);
+  el('localAuthBtn').addEventListener('click', doLocalAuth);
   el('authPass').addEventListener('keydown', function (e) { if (e.key === 'Enter') doAuth(); });
   el('authEmail').addEventListener('keydown', function (e) { if (e.key === 'Enter') el('authPass').focus(); });
   el('logoutBtn').addEventListener('click', logout);
